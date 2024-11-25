@@ -112,4 +112,11 @@
   flex: 1;
 }
 
+* {
+  box-sizing: border-box;
+  margin: 0px;
+  padding: 0px;
+  scroll-behavior: smooth;
+}
+
 /*# sourceMappingURL=index.css.map */
