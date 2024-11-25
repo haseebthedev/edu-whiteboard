@@ -1,5 +1,6 @@
 import { Header } from "./components/header";
 import { MainLayout } from "./layouts/MainLayout";
+import "tldraw/tldraw.css";
 
 const App = () => {
   return (
