@@ -1,9 +1,12 @@
-import { Header } from "./components/header/header";
+import { Header } from "./components/header";
+import { MainLayout } from "./layouts/MainLayout";
 
 const App = () => {
   return (
-    <div>
+    <div className="w-full h-screen overflow-hidden">
       <Header />
+
+      <MainLayout />
     </div>
   );
 };
