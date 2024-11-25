@@ -50,7 +50,9 @@ export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({ editorId, pe
         persistenceKey={persistenceKey}
         autoFocus={false}
         onMount={(editor) => {
+          editor.zoomToFit();
           editorRef.current = editor;
+
           (window as any)[`EDITOR_${editorId}`] = editor;
           if (onMount) onMount(editor);
         }}

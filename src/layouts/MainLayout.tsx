@@ -44,6 +44,7 @@ const MainLayout = () => {
                     PageMenu: null,
                     MenuPanel: null,
                   }}
+                  className="w-full h-60 bg-red-600"
                 />
               </div>
             </div>
