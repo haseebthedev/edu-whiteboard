@@ -1,29 +1,7 @@
 import { useContext, useRef, useEffect } from "react";
-import { Tldraw, Editor, TldrawProps, TLUiComponents } from "tldraw";
+import { Tldraw, Editor, TldrawProps } from "tldraw";
 import "tldraw/tldraw.css";
 import { focusedEditorContext } from "./FocusedEditorProvider";
-
-export const noComponents: Required<TLUiComponents> = {
-  ContextMenu: null,
-  ActionsMenu: null,
-  HelpMenu: null,
-  ZoomMenu: null,
-  MainMenu: null,
-  Minimap: null,
-  StylePanel: null,
-  PageMenu: null,
-  NavigationPanel: null,
-  Toolbar: null,
-  KeyboardShortcutsDialog: null,
-  QuickActions: null,
-  HelperButtons: null,
-  DebugPanel: null,
-  DebugMenu: null,
-  SharePanel: null,
-  MenuPanel: null,
-  TopPanel: null,
-  CursorChatBubble: null,
-};
 
 interface WhiteboardEditorProps extends Omit<TldrawProps, "onMount"> {
   editorId: string;
@@ -50,7 +28,6 @@ export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({ editorId, pe
         persistenceKey={persistenceKey}
         autoFocus={false}
         onMount={(editor) => {
-          editor.zoomToFit();
           editorRef.current = editor;
 
           (window as any)[`EDITOR_${editorId}`] = editor;
