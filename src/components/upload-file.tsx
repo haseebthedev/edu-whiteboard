@@ -1,36 +1,36 @@
-import { useState, useRef } from "react";
+// import { useState, useRef } from "react";
 
 const FileUpload = () => {
   const isModerator = true;
 
-  const [file, setFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // const [file, setFile] = useState<File | null>(null);
+  // const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-    }
-  };
+  // const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const selectedFile = event.target.files?.[0];
+  //   if (selectedFile) {
+  //     setFile(selectedFile);
+  //   }
+  // };
 
-  const handleUpload = () => {
-    if (file) {
-      // Here you would typically send the file to your server
-      console.log("Uploading file:", file.name);
-      // For demonstration, we'll just log the file details
-      console.log("File size:", file.size, "bytes");
-      console.log("File type:", file.type);
-    } else {
-      console.log("No file selected");
-    }
-  };
+  // const handleUpload = () => {
+  //   if (file) {
+  //     // Here you would typically send the file to your server
+  //     console.log("Uploading file:", file.name);
+  //     // For demonstration, we'll just log the file details
+  //     console.log("File size:", file.size, "bytes");
+  //     console.log("File type:", file.type);
+  //   } else {
+  //     console.log("No file selected");
+  //   }
+  // };
 
-  const handleClear = () => {
-    setFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
+  // const handleClear = () => {
+  //   setFile(null);
+  //   if (fileInputRef.current) {
+  //     fileInputRef.current.value = "";
+  //   }
+  // };
 
   return (
     <div className="flex flex-wrap items-center justify-between px-4 py-4 md:px-8 md:py-4 border-b border-gray-200">

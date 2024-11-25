@@ -28,7 +28,7 @@ const sidebarComponents: Required<TLUiComponents> = {
 // Context for managing focused editor
 const FocusedEditorContext = createContext({
   focusedEditor: null as Editor | null,
-  setFocusedEditor: (editor: Editor | null) => {},
+  setFocusedEditor: (_: Editor | null) => {},
 });
 
 export default function MultiSyncWhiteboardApp() {

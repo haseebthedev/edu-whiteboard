@@ -6,7 +6,7 @@ const Sidebar = ({ role = "tutor", onPreviewClick }: any) => {
       <div className="w-full h-full p-4 flex flex-col gap-3">
         <p className="text-gray-700 font-medium text-lg">{role === "tutor" ? "Student Whiteboards" : "Tutor Whiteboard"}</p>
 
-        {(role === "tutor" ? [1, 2, 3, 4, 5, 6] : ["tutor"]).map((id, index) => (
+        {(role === "tutor" ? [1, 2, 3] : ["tutor"]).map((id, index) => (
           <div key={index} className="w-full bg-white shadow-md rounded-lg border border-gray-200 hover:shadow-xl transition-shadow duration-200">
             <div className="p-4 border-b border-gray-300 flex items-center justify-between">
               <h4 className="text-gray-800 text-sm font-medium">{role === "tutor" ? `Student ${id}` : "Tutor's Board"}</h4>
