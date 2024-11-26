@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.tl-watermark_SEE-LICENSE {
+    display: none !important;
+}

@@ -5,22 +5,28 @@ import { Sidebar } from "../components/sidebar";
 
 const MainLayout = () => {
   const [whiteboardPreview, setWhiteboardPreview] = useState<string | number | null>(null);
-  const role = "tutor";
+  const [role, setRole] = useState("tutor");
+
+  const toggleUser = () => {
+    const newUser = role === "tutor" ? "student" : "tutor";
+    setRole(newUser);
+  };
 
   return (
     <div className="w-full h-full flex flex-col md:flex-row items-start bg-gray-100">
       {/* Main Content Area */}
       <div className="w-full md:w-[80%] h-auto md:h-[calc(100%-56px)] border border-gray-300 bg-white shadow-md">
-        <FileUpload />
+        <FileUpload role={role} toggle={toggleUser} />
 
         {/* Main whiteboard or content */}
         <div className="w-full h-[calc(100%-80px)] p-4" style={whiteboardPreview ? { opacity: 0 } : {}}>
           {role === "tutor" && <WhiteboardEditor editorId="tutor" persistenceKey="tutor-board" autoFocus />}
+          {role === "student" && <WhiteboardEditor editorId="student" persistenceKey="student-board" autoFocus />}
         </div>
       </div>
 
       {/* Sidebar */}
-      <Sidebar onPreviewClick={(userId: any) => setWhiteboardPreview(userId)} />
+      <Sidebar role={role} onPreviewClick={(userId: any) => setWhiteboardPreview(userId)} />
 
       {/* Fullscreen */}
       {whiteboardPreview !== null && (
