@@ -1,6 +1,7 @@
+import { Editor } from "tldraw";
 import { WhiteboardEditor } from "./whiteboard/WhiteboardEditor";
 
-const Sidebar = ({ role = "tutor", onPreviewClick }: any) => {
+const Sidebar = ({ role, onPreviewClick, editorsRef }: { role: string; onPreviewClick: Function; editorsRef: React.RefObject<Editor[]> }) => {
   return (
     <div className="w-full md:w-[20%] h-auto md:h-[calc(100%-56px)] overflow-y-auto bg-gray-50 border-t md:border-l md:border-t-0 border-gray-300 shadow-md">
       <div className="w-full h-full p-4 flex flex-col gap-3">
@@ -25,6 +26,8 @@ const Sidebar = ({ role = "tutor", onPreviewClick }: any) => {
                 hideUi={true}
                 onMount={(editor) => {
                   editor.zoomToFit();
+
+                  editorsRef?.current?.push(editor);
                 }}
               />
             </div>

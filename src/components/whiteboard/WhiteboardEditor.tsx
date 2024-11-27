@@ -34,7 +34,6 @@ export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({ editorId, pe
         store={store}
         onMount={(editor) => {
           editorRef.current = editor;
-
           (window as any)[`EDITOR_${editorId}`] = editor;
           if (onMount) onMount(editor);
         }}
