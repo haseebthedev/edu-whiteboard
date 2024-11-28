@@ -5,59 +5,118 @@ import { Sidebar } from "../components/sidebar";
 import { AssetRecordType, createShapeId, Editor, TLAssetId, TLImageShape, TLShapeId } from "tldraw";
 
 const MainLayout = () => {
-  const [whiteboardPreview, setWhiteboardPreview] = useState<string | number | null>(null);
-  const [role, setRole] = useState("tutor");
+  const [whiteboardPreview, setWhiteboardPreview] = useState<string | null>(null);
+
+  const [myJid, setMyJid] = useState("focus@auth.alpha.jitsi.net/focus");
+  const [iamModerator, setIamModerator] = useState(true);
+  const [occupants, setOccupants] = useState<any>([
+    {
+      occupantId: "isolatedacademicsawardyearly@conference.alpha.jitsi.net/focus",
+      nick: "Tutor",
+      role: "moderator",
+      affiliation: "owner",
+      jid: "focus@auth.alpha.jitsi.net/focus",
+      isFocus: true,
+    },
+    {
+      occupantId: "isolatedacademicsawardyearly@conference.alpha.jitsi.net/5d62aa54",
+      nick: "student",
+      role: "participant",
+      affiliation: "none",
+      jid: "5d62aa54-3ab9-4d56-9dd0-22d22533f563@alpha.jitsi.net/9MhoNk72E131",
+      isFocus: false,
+    },
+    {
+      occupantId: "isolatedacademicsawardyearly@conference.alpha.jitsi.net/6d62aa54",
+      nick: "student",
+      role: "participant",
+      affiliation: "none",
+      jid: "6d62aa54-3ab9-4d56-9dd0-22d22533f563@alpha.jitsi.net/9MhoNk72E131",
+      isFocus: false,
+    },
+    {
+      occupantId: "isolatedacademicsawardyearly@conference.alpha.jitsi.net/7d62aa54",
+      nick: "student",
+      role: "participant",
+      affiliation: "none",
+      jid: "7d62aa54-3ab9-4d56-9dd0-22d22533f563@alpha.jitsi.net/9MhoNk72E131",
+      isFocus: false,
+    },
+  ]);
+
+  // Toggle between tutor and student roles
+  const toggleRole = () => {
+    setIamModerator(!iamModerator);
+    setMyJid((prevJid) =>
+      prevJid === "focus@auth.alpha.jitsi.net/focus"
+        ? "5d62aa54-3ab9-4d56-9dd0-22d22533f563@alpha.jitsi.net/9MhoNk72E131"
+        : "focus@auth.alpha.jitsi.net/focus"
+    );
+  };
+
   const [isModalOpen, setModalOpen] = useState(false); // Track modal state
   const editorsRef = useRef<Editor[]>([]); // Ref to store all editor instances
 
   const [assetIds, setAssetIds] = useState<TLAssetId[]>([]);
   const [shapeIds, setShapeIds] = useState<TLShapeId[]>([]);
 
-  // const toggleUser = () => {
-  //   const newUser = role === "tutor" ? "student" : "tutor";
-  //   setRole(newUser);
+  // Test Handler
+  // const testHandler = () => {
+  //   setIamModerator((prev) => !prev);
   // };
 
   // Function to handle file upload
   const handleFileUpload = (images: string[]) => {
-    const image = images[0];
-
-    const assetId = AssetRecordType.createId();
-    const shapeId = createShapeId();
-
-    setAssetIds((prev) => [...prev, assetId]);
-    setShapeIds((prev) => [...prev, shapeId]);
+    if (!images || images.length === 0) return;
 
     editorsRef.current.forEach((editor) => {
-      editor.createAssets([
-        {
-          id: assetId,
-          typeName: "asset",
+      images.forEach((image, index) => {
+        const assetId = AssetRecordType.createId();
+        const shapeId = createShapeId();
+
+        // Add the asset
+        editor.createAssets([
+          {
+            id: assetId,
+            typeName: "asset",
+            type: "image",
+            meta: {},
+            props: {
+              w: 1600,
+              h: 900,
+              mimeType: "image/png",
+              src: image,
+              name: `image-${index + 1}`,
+              isAnimated: false,
+            },
+          },
+        ]);
+
+        // Create a new page for this image
+        editor.createPage({
+          name: `Activity ${index + 1}`,
+        });
+
+        // Add the image shape to the new page
+        editor.createShape<TLImageShape>({
+          id: shapeId,
           type: "image",
-          meta: {},
+          x: 0,
+          y: 0,
+          isLocked: false,
           props: {
             w: 1600,
             h: 900,
-            mimeType: "image/png",
-            src: image,
-            name: "image",
-            isAnimated: false,
+            assetId,
           },
-        },
-      ]);
-
-      editor.createShape<TLImageShape>({
-        id: shapeId,
-        type: "image",
-        x: 0,
-        y: 0,
-        isLocked: false,
-        props: {
-          w: 1600,
-          h: 900,
-          assetId,
-        },
+        });
       });
+
+      // Optionally return to the first page
+      const firstPageId = editor.getPages()[0];
+      if (firstPageId) {
+        editor.setCurrentPage(firstPageId);
+      }
 
       editor.zoomToFit();
     });
@@ -76,7 +135,6 @@ const MainLayout = () => {
       editor.clearHistory();
 
       // Reset the camera to its initial state (optional)
-      editor.toggleLock(shapeIds);
       editor.selectAll();
       editor.deleteShapes(editor.getSelectedShapeIds());
 
@@ -84,36 +142,52 @@ const MainLayout = () => {
     });
   };
 
+  const userInfo = occupants.find((el: any) => el.jid === myJid);
+
   return (
     <div className="w-full h-full flex flex-col md:flex-row items-start bg-gray-100">
       {/* Main Content Area */}
       <div className={`w-full md:w-[80%] h-auto md:h-[calc(100%-56px)] border border-gray-300 bg-white shadow-md`}>
-        <FileUpload role={role} isModalOpen={isModalOpen} setModalOpen={setModalOpen} onFileUpload={handleFileUpload} onClear={clearAllWhiteboards} />
+        <div className="flex items-center">
+          {iamModerator && (
+            <FileUpload isModalOpen={isModalOpen} setModalOpen={setModalOpen} onFileUpload={handleFileUpload} onClear={clearAllWhiteboards} />
+          )}
+          <button className="px-4 py-2 bg-primary text-white rounded-lg" onClick={toggleRole}>
+            Test Handler
+          </button>
+        </div>
 
         {/* Main whiteboard or content */}
         <div
           className={`w-full h-[calc(100%-80px)] p-4 ${isModalOpen ? "pointer-events-none opacity-50" : ""}`}
           style={whiteboardPreview ? { opacity: 0 } : {}}
         >
-          {role === "tutor" && (
-            <WhiteboardEditor editorId="tutor" persistenceKey="tutor-board" autoFocus={true} onMount={(editor) => editorsRef.current.push(editor)} />
-          )}
-          {role === "student" && (
+          {/* For Tutor */}
+          <WhiteboardEditor
+            editorId={userInfo.occupantId}
+            persistenceKey={userInfo.occupantId}
+            autoFocus={true}
+            onMount={(editor) => editorsRef.current.push(editor)}
+          />
+
+          {/* For Student
+          {!iamModerator && (
             <WhiteboardEditor
               editorId="student"
               persistenceKey="student-board"
               autoFocus={true}
               onMount={(editor) => editorsRef.current.push(editor)}
             />
-          )}
+          )} */}
         </div>
       </div>
 
       {/* Sidebar */}
       <Sidebar
-        role={role}
-        onPreviewClick={(userId: any) => setWhiteboardPreview(userId)}
-        editorsRef={editorsRef} // Pass editorsRef to Sidebar
+        iamModerator={iamModerator}
+        occupants={occupants}
+        onPreviewClick={(occupantId: any) => setWhiteboardPreview(occupantId)}
+        editorsRef={editorsRef}
       />
 
       {/* Fullscreen */}
@@ -125,8 +199,8 @@ const MainLayout = () => {
 
           <div className="w-full h-[calc(100%-120px)]">
             <WhiteboardEditor
-              editorId={whiteboardPreview === "tutor" ? "tutor" : `student-${whiteboardPreview}`}
-              persistenceKey={whiteboardPreview === "tutor" ? "tutor-board" : `student-board-${whiteboardPreview}`}
+              editorId={whiteboardPreview}
+              persistenceKey={whiteboardPreview}
               className="fullscreen-editor"
               autoFocus={true}
               onMount={(editor) => {
