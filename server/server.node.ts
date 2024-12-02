@@ -18,6 +18,7 @@ app.register(async (app) => {
 	app.get('/connect/:roomId', { websocket: true }, async (socket, req) => {
 		// The roomId comes from the URL pathname
 		const roomId = (req.params as any).roomId as string
+
 		// The sessionId is passed from the client as a query param,
 		// you need to extract it and pass it to the room.
 		const sessionId = (req.query as any)?.['sessionId'] as string

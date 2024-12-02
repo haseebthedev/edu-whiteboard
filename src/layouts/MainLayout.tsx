@@ -1,21 +1,27 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FileUpload } from "../components/upload-file";
 import { WhiteboardEditor } from "../components/whiteboard/WhiteboardEditor";
 import { Sidebar } from "../components/sidebar";
 import { AssetRecordType, createShapeId, Editor, TLAssetId, TLImageShape, TLShapeId } from "tldraw";
 
 const MainLayout = () => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const userType = searchParams.get("user");
+
+  const [isLoading, setIsLoading] = useState(true); // Loading state
+  const [myJid, setMyJid] = useState<string | null>(null);
+  const [iamModerator, setIamModerator] = useState<boolean | null>(null);
   const [whiteboardPreview, setWhiteboardPreview] = useState<string | null>(null);
 
-  const [myJid, setMyJid] = useState("focus@auth.alpha.jitsi.net/focus");
-  const [iamModerator, setIamModerator] = useState(true);
+  const [classId, setClassId] = useState("12345678");
+
   const [occupants, setOccupants] = useState<any>([
     {
-      occupantId: "isolatedacademicsawardyearly@conference.alpha.jitsi.net/focus",
+      occupantId: "isolatedacademicsawardyearly@conference.alpha.jitsi.net/4d62aa54",
       nick: "Tutor",
       role: "moderator",
       affiliation: "owner",
-      jid: "focus@auth.alpha.jitsi.net/focus",
+      jid: "4d62aa54-3ab9-4d56-9dd0-22d22533f563@alpha.jitsi.net/9MhoNk72E131",
       isFocus: true,
     },
     {
@@ -44,21 +50,11 @@ const MainLayout = () => {
     },
   ]);
 
-  // Toggle between tutor and student roles
-  const toggleRole = () => {
-    setIamModerator(!iamModerator);
-    setMyJid((prevJid) =>
-      prevJid === "focus@auth.alpha.jitsi.net/focus"
-        ? "5d62aa54-3ab9-4d56-9dd0-22d22533f563@alpha.jitsi.net/9MhoNk72E131"
-        : "focus@auth.alpha.jitsi.net/focus"
-    );
-  };
+  const [isModalOpen, setModalOpen] = useState(false);
+  const editorsRef = useRef<Editor[]>([]);
 
-  const [isModalOpen, setModalOpen] = useState(false); // Track modal state
-  const editorsRef = useRef<Editor[]>([]); // Ref to store all editor instances
-
-  const [assetIds, setAssetIds] = useState<TLAssetId[]>([]);
-  const [shapeIds, setShapeIds] = useState<TLShapeId[]>([]);
+  const [assetIds] = useState<TLAssetId[]>([]);
+  const [shapeIds] = useState<TLShapeId[]>([]);
 
   // Function to handle file upload
   const handleFileUpload = (images: string[]) => {
@@ -137,7 +133,33 @@ const MainLayout = () => {
     });
   };
 
+  useEffect(() => {
+    // Simulate fetching user data and determining userType
+    setTimeout(() => {
+      if (userType === "tutor") {
+        const tutor = occupants.find((el: any) => el.role === "moderator");
+        setMyJid(tutor?.jid || null);
+        setIamModerator(true);
+      } else {
+        const participant = occupants.find((el: any) => el.role === "participant");
+        setMyJid(participant?.jid || null);
+        setIamModerator(false);
+      }
+      setIsLoading(false); // Mark loading as complete
+    }, 1000); // Simulating an API call
+  }, [userType, occupants]);
+
   const userInfo = occupants.find((el: any) => el.jid === myJid);
+
+  if (isLoading) {
+    // Show loading state
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+
+  if (!myJid) {
+    // Show an error state if `myJid` is not available
+    return <div className="flex items-center justify-center h-screen">Unable to determine user role. Please try again.</div>;
+  }
 
   return (
     <div className="w-full h-full flex flex-col md:flex-row items-start bg-gray-100">
@@ -159,8 +181,8 @@ const MainLayout = () => {
           style={whiteboardPreview ? { opacity: 0 } : {}}
         >
           <WhiteboardEditor
-            editorId={userInfo.occupantId}
-            persistenceKey={userInfo.occupantId}
+            classId={classId}
+            occupantId={userInfo?.occupantId.split(".net/")[1]}
             autoFocus={true}
             onMount={(editor) => editorsRef.current.push(editor)}
           />
@@ -169,6 +191,7 @@ const MainLayout = () => {
 
       {/* Sidebar */}
       <Sidebar
+        classId={classId}
         iamModerator={iamModerator}
         occupants={occupants}
         onPreviewClick={(occupantId: any) => setWhiteboardPreview(occupantId)}
@@ -184,8 +207,9 @@ const MainLayout = () => {
 
           <div className="w-full h-[calc(100%-120px)]">
             <WhiteboardEditor
-              editorId={whiteboardPreview}
-              persistenceKey={whiteboardPreview}
+              classId={classId}
+              occupantId={whiteboardPreview.split(".net/")[1]}
+              // persistenceKey={whiteboardPreview}
               className="fullscreen-editor"
               autoFocus={true}
               onMount={(editor) => {

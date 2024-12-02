@@ -1,139 +1,60 @@
-import {
-    HistoryEntry,
-    StoreListener,
-    TLRecord,
-    TLStoreWithStatus,
-    createTLStore,
-    defaultShapeUtils,
-    throttle,
-    uniqueId,
-} from 'tldraw'
-import { useEffect, useState } from 'react'
-import { io, Socket } from 'socket.io-client'
+import { AssetRecordType, getHashForString, TLAssetStore, TLBookmarkAsset, uniqueId } from "tldraw"
 
-const clientId = uniqueId()
+const WORKER_URL = `http://localhost:5858`
 
-export function useSyncStore({
-    hostUrl,
-    version = 1,
-    roomId = 'example',
-}: {
-    hostUrl: string
-    version?: number
-    roomId?: string
-}) {
-    const [store] = useState(() => {
-        const store = createTLStore({
-            shapeUtils: [...defaultShapeUtils],
-        })
-        return store
-    })
+export const multiplayerAssets: TLAssetStore = {
+    // to upload an asset, we prefix it with a unique id, POST it to our worker, and return the URL
+    async upload(_asset, file) {
+        const id = uniqueId()
 
-    const [storeWithStatus, setStoreWithStatus] = useState<TLStoreWithStatus>({
-        status: 'loading',
-    })
+        const objectName = `${id}-${file.name}`
+        const url = `${WORKER_URL}/uploads/${encodeURIComponent(objectName)}`
 
-    useEffect(() => {
-        const socket: Socket = io(hostUrl, {
-            query: { room: `${roomId}_${version}` },
+        const response = await fetch(url, {
+            method: 'PUT',
+            body: file,
         })
 
-        setStoreWithStatus({ status: 'loading' })
-
-        const unsubs: (() => void)[] = []
-
-        const handleOpen = () => {
-            setStoreWithStatus({
-                status: 'synced-remote',
-                connectionStatus: 'online',
-                store,
-            })
-
-            socket.on('message', handleMessage)
-            unsubs.push(() => socket.off('message', handleMessage))
+        if (!response.ok) {
+            throw new Error(`Failed to upload asset: ${response.statusText}`)
         }
 
-        const handleClose = () => {
-            setStoreWithStatus({
-                status: 'synced-remote',
-                connectionStatus: 'offline',
-                store,
-            })
-        }
+        return url
+    },
+    // to retrieve an asset, we can just use the same URL. you could customize this to add extra
+    // auth, or to serve optimized versions / sizes of the asset.
+    resolve(asset) {
+        return asset.props.src
+    },
+}
 
-        const handleMessage = (data: any) => {
-            if (data.clientId === clientId) return
+// How does our server handle bookmark unfurling?
+export async function unfurlBookmarkUrl({ url }: { url: string }): Promise<TLBookmarkAsset> {
+    const asset: TLBookmarkAsset = {
+        id: AssetRecordType.createId(getHashForString(url)),
+        typeName: 'asset',
+        type: 'bookmark',
+        meta: {},
+        props: {
+            src: url,
+            description: '',
+            image: '',
+            favicon: '',
+            title: '',
+        },
+    }
 
-            switch (data.type) {
-                case 'init': {
-                    store.loadSnapshot(data.snapshot)
-                    break
-                }
-                case 'recovery': {
-                    store.loadSnapshot(data.snapshot)
-                    break
-                }
-                case 'update': {
-                    try {
-                        for (const update of data.updates) {
-                            store.mergeRemoteChanges(() => {
-                                const {
-                                    changes: { added, updated, removed },
-                                } = update as HistoryEntry<TLRecord>
+    try {
+        const response = await fetch(`${WORKER_URL}/unfurl?url=${encodeURIComponent(url)}`)
+        const data = await response.json()
 
-                                for (const record of Object.values(added)) {
-                                    store.put([record])
-                                }
-                                for (const [, to] of Object.values(updated)) {
-                                    store.put([to])
-                                }
-                                for (const record of Object.values(removed)) {
-                                    store.remove([record.id])
-                                }
-                            })
-                        }
-                    } catch (e) {
-                        console.error(e)
-                        socket.emit('recovery', { clientId })
-                    }
-                    break
-                }
-            }
-        }
+        asset.props.description = data?.description ?? ''
+        asset.props.image = data?.image ?? ''
+        asset.props.favicon = data?.favicon ?? ''
+        asset.props.title = data?.title ?? ''
+    } catch (e) {
+        console.error(e)
+    }
 
-        const pendingChanges: HistoryEntry<TLRecord>[] = []
-        const sendChanges = throttle(() => {
-            if (pendingChanges.length === 0) return
-            socket.emit('update', {
-                clientId,
-                type: 'update',
-                updates: pendingChanges,
-            })
-            pendingChanges.length = 0
-        }, 32)
-
-        const handleChange: StoreListener<TLRecord> = (event) => {
-            if (event.source !== 'user') return
-            pendingChanges.push(event)
-            sendChanges()
-        }
-
-        socket.on('connect', handleOpen)
-        socket.on('disconnect', handleClose)
-
-        unsubs.push(
-            store.listen(handleChange, {
-                source: 'user',
-                scope: 'document',
-            })
-        )
-
-        return () => {
-            unsubs.forEach((fn) => fn())
-            unsubs.length = 0
-            socket.disconnect()
-        }
-    }, [store, hostUrl, roomId, version])
-
-    return storeWithStatus
+    return asset
 }

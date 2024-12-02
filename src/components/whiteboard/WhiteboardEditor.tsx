@@ -1,49 +1,34 @@
-import { useContext, useRef, useEffect } from "react";
+import { useSync } from "@tldraw/sync";
+// import { useContext, useRef, useEffect } from "react";
 import { Tldraw, Editor, TldrawProps } from "tldraw";
+// import { focusedEditorContext } from "./FocusedEditorProvider";
+import { multiplayerAssets, unfurlBookmarkUrl } from "./useSyncStore";
 import "tldraw/tldraw.css";
-import { focusedEditorContext } from "./FocusedEditorProvider";
-import { useSyncDemo } from "@tldraw/sync";
 
 interface WhiteboardEditorProps extends Omit<TldrawProps, "onMount"> {
-  editorId: string;
-  persistenceKey: string;
+  classId: string;
+  occupantId: string;
+  persistenceKey?: string;
   onMount?: (editor: Editor) => void;
 }
 
 const WORKER_URL = `http://localhost:5858`;
 
-// In this example, the room ID is hard-coded. You can set this however you like though.
-const roomId = "test-room";
+export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({ classId, occupantId, onMount, ...rest }) => {
+  const roomId = `${classId}-${occupantId}`;
 
-export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({ editorId, persistenceKey, onMount, ...rest }) => {
-  const { setFocusedEditor } = useContext(focusedEditorContext);
-  const editorRef = useRef<Editor | null>(null);
-
-  // const { store, status } = useSyncStore({ hostUrl: "http://localhost:3000", roomId: persistenceKey });
-  const store = useSyncDemo({ roomId: persistenceKey });
-
-  useEffect(() => {
-    return () => {
-      // Cleanup on unmount
-      if (editorRef.current) {
-        editorRef.current.dispose();
-      }
-    };
-  }, []);
+  const store = useSync({ uri: `${WORKER_URL}/connect/${roomId}`, assets: multiplayerAssets });
 
   return (
-    <div tabIndex={-1} className="w-full h-full" onFocus={() => setFocusedEditor((window as any)[`EDITOR_${editorId}`])}>
-      <Tldraw
-        // persistenceKey={persistenceKey}
-        autoFocus={false}
-        store={store}
-        onMount={(editor) => {
-          editorRef.current = editor;
-          (window as any)[`EDITOR_${editorId}`] = editor;
-          if (onMount) onMount(editor);
-        }}
-        {...rest}
-      />
-    </div>
+    <Tldraw
+      store={store}
+      autoFocus={false}
+      onMount={(editor) => {
+        // (window as any)[`EDITOR_${editorId}`] = editor;
+        editor.registerExternalAssetHandler("url", unfurlBookmarkUrl);
+        if (onMount) onMount(editor);
+      }}
+      {...rest}
+    />
   );
 };
