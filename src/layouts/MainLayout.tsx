@@ -20,7 +20,7 @@ const MainLayout = () => {
     },
     {
       occupantId: "isolatedacademicsawardyearly@conference.alpha.jitsi.net/5d62aa54",
-      nick: "student",
+      nick: "Alexa",
       role: "participant",
       affiliation: "none",
       jid: "5d62aa54-3ab9-4d56-9dd0-22d22533f563@alpha.jitsi.net/9MhoNk72E131",
@@ -28,7 +28,7 @@ const MainLayout = () => {
     },
     {
       occupantId: "isolatedacademicsawardyearly@conference.alpha.jitsi.net/6d62aa54",
-      nick: "student",
+      nick: "John",
       role: "participant",
       affiliation: "none",
       jid: "6d62aa54-3ab9-4d56-9dd0-22d22533f563@alpha.jitsi.net/9MhoNk72E131",
@@ -36,7 +36,7 @@ const MainLayout = () => {
     },
     {
       occupantId: "isolatedacademicsawardyearly@conference.alpha.jitsi.net/7d62aa54",
-      nick: "student",
+      nick: "Mark",
       role: "participant",
       affiliation: "none",
       jid: "7d62aa54-3ab9-4d56-9dd0-22d22533f563@alpha.jitsi.net/9MhoNk72E131",
@@ -60,56 +60,51 @@ const MainLayout = () => {
   const [assetIds, setAssetIds] = useState<TLAssetId[]>([]);
   const [shapeIds, setShapeIds] = useState<TLShapeId[]>([]);
 
-  // Test Handler
-  // const testHandler = () => {
-  //   setIamModerator((prev) => !prev);
-  // };
-
   // Function to handle file upload
   const handleFileUpload = (images: string[]) => {
     if (!images || images.length === 0) return;
 
     editorsRef.current.forEach((editor) => {
-      images.forEach((image, index) => {
-        const assetId = AssetRecordType.createId();
-        const shapeId = createShapeId();
+      const image = images[0];
 
-        // Add the asset
-        editor.createAssets([
-          {
-            id: assetId,
-            typeName: "asset",
-            type: "image",
-            meta: {},
-            props: {
-              w: 1600,
-              h: 900,
-              mimeType: "image/png",
-              src: image,
-              name: `image-${index + 1}`,
-              isAnimated: false,
-            },
-          },
-        ]);
+      const assetId = AssetRecordType.createId();
+      const shapeId = createShapeId();
 
-        // Create a new page for this image
-        editor.createPage({
-          name: `Activity ${index + 1}`,
-        });
-
-        // Add the image shape to the new page
-        editor.createShape<TLImageShape>({
-          id: shapeId,
+      // Add the asset
+      editor.createAssets([
+        {
+          id: assetId,
+          typeName: "asset",
           type: "image",
-          x: 0,
-          y: 0,
-          isLocked: false,
+          meta: {},
           props: {
             w: 1600,
             h: 900,
-            assetId,
+            mimeType: "image/png",
+            src: image,
+            name: `image-${image + 1}`,
+            isAnimated: false,
           },
-        });
+        },
+      ]);
+
+      // Create a new page for this image
+      // editor.createPage({
+      //   name: `Activity ${index + 1}`,
+      // });
+
+      // Add the image shape to the new page
+      editor.createShape<TLImageShape>({
+        id: shapeId,
+        type: "image",
+        x: 0,
+        y: 0,
+        isLocked: false,
+        props: {
+          w: 1600,
+          h: 900,
+          assetId,
+        },
       });
 
       // Optionally return to the first page
@@ -148,37 +143,27 @@ const MainLayout = () => {
     <div className="w-full h-full flex flex-col md:flex-row items-start bg-gray-100">
       {/* Main Content Area */}
       <div className={`w-full md:w-[80%] h-auto md:h-[calc(100%-56px)] border border-gray-300 bg-white shadow-md`}>
-        <div className="flex items-center">
-          {iamModerator && (
-            <FileUpload isModalOpen={isModalOpen} setModalOpen={setModalOpen} onFileUpload={handleFileUpload} onClear={clearAllWhiteboards} />
-          )}
-          <button className="px-4 py-2 bg-primary text-white rounded-lg" onClick={toggleRole}>
-            Test Handler
-          </button>
-        </div>
+        {iamModerator && (
+          <FileUpload
+            iamModerator
+            isModalOpen={isModalOpen}
+            setModalOpen={setModalOpen}
+            onFileUpload={handleFileUpload}
+            onClear={clearAllWhiteboards}
+          />
+        )}
 
         {/* Main whiteboard or content */}
         <div
           className={`w-full h-[calc(100%-80px)] p-4 ${isModalOpen ? "pointer-events-none opacity-50" : ""}`}
           style={whiteboardPreview ? { opacity: 0 } : {}}
         >
-          {/* For Tutor */}
           <WhiteboardEditor
             editorId={userInfo.occupantId}
             persistenceKey={userInfo.occupantId}
             autoFocus={true}
             onMount={(editor) => editorsRef.current.push(editor)}
           />
-
-          {/* For Student
-          {!iamModerator && (
-            <WhiteboardEditor
-              editorId="student"
-              persistenceKey="student-board"
-              autoFocus={true}
-              onMount={(editor) => editorsRef.current.push(editor)}
-            />
-          )} */}
         </div>
       </div>
 

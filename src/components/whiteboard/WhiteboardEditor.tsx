@@ -10,6 +10,11 @@ interface WhiteboardEditorProps extends Omit<TldrawProps, "onMount"> {
   onMount?: (editor: Editor) => void;
 }
 
+const WORKER_URL = `http://localhost:5858`;
+
+// In this example, the room ID is hard-coded. You can set this however you like though.
+const roomId = "test-room";
+
 export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({ editorId, persistenceKey, onMount, ...rest }) => {
   const { setFocusedEditor } = useContext(focusedEditorContext);
   const editorRef = useRef<Editor | null>(null);
