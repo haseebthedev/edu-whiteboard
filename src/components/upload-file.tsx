@@ -1,49 +1,68 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
 const FileUpload = ({ isModalOpen, setModalOpen, onFileUpload, onClear }: any) => {
-  const [pdfPreviews, setPdfPreviews] = useState<string[]>([]); // To store preview URLs
+  const [googleSlideLink, setGoogleSlideLink] = useState<string | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false); // New state for loader
 
-  // Maximum number of previews to display
   const MAX_PREVIEWS = 3;
-
-  const remainingImagesCount = pdfPreviews.length - MAX_PREVIEWS;
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Simulate server-side processing
-      console.log("Uploading file:", file.name);
-
-      const formData = new FormData();
-      formData.append("pdf", file);
-
-      try {
-        const response = await fetch("http://localhost:3000/file/upload-and-convert", {
-          method: "POST",
-          body: formData,
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-          const images = result.images.map((el: string) => "http://localhost:3000" + el);
-          setPdfPreviews(images);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  };
+  const remainingImagesCount = imagePreviews.length - MAX_PREVIEWS;
 
   const handleClearWhiteboard = () => {
     onClear();
     console.log("Clear Whiteboard triggered!");
-    // Implement logic to clear the whiteboard
   };
 
-  const createActivity = () => {
-    onFileUpload(pdfPreviews);
+  const extractPresentationId = (url: string) => {
+    const regex = /\/d\/([a-zA-Z0-9-_]+)/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
   };
+
+  const handleProcessSlides = async () => {
+    setError("");
+    if (!googleSlideLink) return;
+
+    const presentationId = extractPresentationId(googleSlideLink);
+    if (!presentationId) {
+      setError("Invalid Google Slides link. Please enter a valid URL.");
+      return;
+    }
+
+    setLoading(true); // Start loader
+    try {
+      const response = await fetch(`http://localhost:3000/process/${presentationId}`, { method: "GET" });
+      const result = await response.json();
+
+      if (result && result.imageUrls) {
+        const images = result.imageUrls.map((el: string) => `http://localhost:3000${el}`);
+        setImagePreviews(images);
+      } else {
+        setError("Failed to process the presentation. Please check URL or permissions.");
+      }
+    } catch (err) {
+      setError("Failed to process the presentation. Please try again.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startActivityHandler = async () => {
+    if (!imagePreviews) setError("Please enter the Google Slide URL.");
+    onFileUpload(imagePreviews);
+  };
+
+  useEffect(() => {
+    return () => {
+      setGoogleSlideLink(null);
+      setImagePreviews([]);
+      setError(null);
+      setLoading(false); // Reset loader
+    };
+  }, [isModalOpen]);
 
   return (
     <>
@@ -70,41 +89,59 @@ const FileUpload = ({ isModalOpen, setModalOpen, onFileUpload, onClear }: any) =
             </div>
 
             {/* File Input */}
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={handleFileUpload}
-              className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Enter Google Slide URL"
+                onChange={({ target: { value } }) => setGoogleSlideLink(value)}
+                className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <button
+                onClick={handleProcessSlides}
+                disabled={!googleSlideLink || loading} // Disable button when URL is null or loading
+                className={`px-4 py-2 rounded-md ${
+                  googleSlideLink && !loading ? "bg-primary text-white cursor-pointer" : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
+              >
+                {loading ? "Processing..." : "Process"}
+              </button>
+            </div>
 
             {/* Previews */}
-            {pdfPreviews.length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-md font-semibold mb-2">Preview:</h3>
-                <div className="flex items-center gap-4">
-                  {/* Display up to MAX_PREVIEWS images */}
-                  {pdfPreviews.slice(0, MAX_PREVIEWS).map((url, index) => (
-                    <img key={index} src={url} alt={`Preview ${index + 1}`} className="w-20 h-20 bg-primary border border-gray-300 rounded-md" />
-                  ))}
-                  {/* Placeholder for remaining images */}
-                  {remainingImagesCount > 0 && (
-                    <div className="text-sm tecenterxt-center text-gray-500">
-                      <p>{`+${remainingImagesCount} more images`}</p>
-                    </div>
-                  )}
+            {error ? (
+              <p className="text-red-600 my-4">{error}</p>
+            ) : (
+              imagePreviews.length > 0 && (
+                <div className="mt-10">
+                  <h3 className="text-md font-semibold mb-2">Preview:</h3>
+                  <div className="flex items-center gap-4">
+                    {imagePreviews.slice(0, MAX_PREVIEWS).map((url, index) => (
+                      <img key={index} src={url} alt={`Preview ${index + 1}`} className="w-20 h-20 bg-primary border border-gray-300 rounded-md" />
+                    ))}
+                    {remainingImagesCount > 0 && (
+                      <div className="text-sm text-center text-gray-500">
+                        <p>{`+${remainingImagesCount} more images`}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )
             )}
 
             {/* Actions */}
-            <div className="mt-6 flex items-center justify-end gap-4">
-              <button onClick={() => setModalOpen(false)} className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition">
-                Cancel
-              </button>
-              <button onClick={createActivity} className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition">
-                Create Activity
-              </button>
-            </div>
+            {imagePreviews.length > 0 && ( // Show buttons only if there are image previews
+              <div className="mt-10 flex items-center justify-center gap-4">
+                <button
+                  onClick={() => setModalOpen(false)}
+                  className="w-32 px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition text-center"
+                >
+                  Cancel
+                </button>
+                <button onClick={startActivityHandler} className="w-32 px-4 py-2 rounded-md bg-primary text-white cursor-pointer text-center">
+                  Create
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

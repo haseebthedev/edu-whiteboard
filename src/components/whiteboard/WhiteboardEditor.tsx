@@ -1,7 +1,5 @@
 import { useSync } from "@tldraw/sync";
-// import { useContext, useRef, useEffect } from "react";
 import { Tldraw, Editor, TldrawProps } from "tldraw";
-// import { focusedEditorContext } from "./FocusedEditorProvider";
 import { multiplayerAssets, unfurlBookmarkUrl } from "./useSyncStore";
 import "tldraw/tldraw.css";
 
@@ -24,7 +22,6 @@ export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({ classId, occ
       store={store}
       autoFocus={false}
       onMount={(editor) => {
-        // (window as any)[`EDITOR_${editorId}`] = editor;
         editor.registerExternalAssetHandler("url", unfurlBookmarkUrl);
         if (onMount) onMount(editor);
       }}

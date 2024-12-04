@@ -5,8 +5,7 @@ import "tldraw/tldraw.css";
 const App = () => {
   return (
     <div className="w-full h-screen overflow-hidden">
-      <Header />
-
+      {/* <Header /> */}
       <MainLayout />
     </div>
   );

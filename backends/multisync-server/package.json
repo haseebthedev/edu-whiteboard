@@ -1,0 +1,26 @@
+{
+  "name": "multisync-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.node.js",
+  "scripts": {
+    "start": "yarn run -T tsx watch ./server.node.ts"
+  },
+  "author": "Haseeb Ahmed",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/cors": "^10.0.1",
+    "@fastify/websocket": "^11.0.1",
+    "@tldraw/sync": "^3.4.1",
+    "express": "^4.21.1",
+    "fastify": "^5.1.0",
+    "ts-node": "^10.9.2",
+    "unfurl.js": "^6.4.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "tsx": "^4.19.2",
+    "typescript": "~5.6.2",
+    "typescript-eslint": "^8.11.0"
+  }
+}

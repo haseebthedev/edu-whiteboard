@@ -33,10 +33,13 @@ const Sidebar = ({
   };
 
   return (
-    <div className="w-full md:w-[20%] h-auto md:h-[calc(100%-56px)] overflow-y-auto bg-gray-50 border-t md:border-l md:border-t-0 border-gray-300 shadow-md select-none">
-      <div className="w-full h-full p-4 flex flex-col gap-3">
+    <div className="w-full md:w-[20%] h-screen overflow-y-auto bg-gray-50 border-t md:border-l md:border-t-0 border-gray-300 shadow-md select-none">
+      <div className="w-full h-full p-4 flex flex-col">
         {items.map((occupant, index) => (
-          <div key={index} className="w-full bg-white shadow-md rounded-lg border border-gray-200 hover:shadow-xl transition-shadow duration-200">
+          <div
+            key={index}
+            className="w-full bg-white shadow-sm rounded-lg mb-4 border border-gray-200 hover:shadow-xl transition-shadow duration-200"
+          >
             <div className="p-4 border-b border-gray-300 flex items-center justify-between">
               <h4 className="text-gray-800 text-sm font-medium">{iamModerator ? occupant.nick : "Tutor's Board"}</h4>
               <button
