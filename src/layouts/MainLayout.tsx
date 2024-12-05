@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { FileUpload } from "../components/upload-file";
 import { WhiteboardEditor } from "../components/whiteboard/WhiteboardEditor";
 import { Sidebar } from "../components/sidebar";
-import { AssetRecordType, createShapeId, Editor, TLAssetId, TLImageShape, TLPageId, TLShapeId } from "tldraw";
+import { AssetRecordType, createShapeId, Editor, TLAssetId, TLImageShape, TLShapeId } from "tldraw";
 
 const MainLayout = () => {
   const searchParams = new URLSearchParams(window.location.search);
@@ -120,16 +120,6 @@ const MainLayout = () => {
     setModalOpen(false);
   };
 
-  // const createPage = () => {
-  //   const images = [1, 2, 3, 4, 5];
-
-  //   editorsRef.current.forEach((editor) => {
-  //     images.map((img, index) => {
-  //       editor.createPage({ id: `page:${index}` as any, name: `Page # ${index}` });
-  //     });
-  //   });
-  // };
-
   // Function to clear all pages in all whiteboards
   const clearAllWhiteboards = async () => {
     editorsRef.current.forEach((editor) => {
@@ -199,10 +189,6 @@ const MainLayout = () => {
 
   return (
     <div className="w-full h-full flex flex-col md:flex-row items-start bg-gray-100">
-      {/* <button onClick={createPage} className="px-4 py-2 md:px-6 md:py-2 bg-primary text-white rounded-md mb-4">
-        Create Page
-      </button> */}
-
       {/* Main Content Area */}
       <div className={`w-full md:w-[80%] h-screen border border-gray-300 bg-white shadow-md`}>
         {iamModerator && (
