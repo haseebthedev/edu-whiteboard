@@ -33,11 +33,11 @@ const FileUpload = ({ isModalOpen, setModalOpen, onFileUpload, onClear }: any) =
 
     setLoading(true); // Start loader
     try {
-      const response = await fetch(`http://localhost:3000/process/${presentationId}`, { method: "GET" });
+      const response = await fetch(`http://localhost:5100/process/${presentationId}`, { method: "GET" });
       const result = await response.json();
 
       if (result && result.imageUrls) {
-        const images = result.imageUrls.map((el: string) => `http://localhost:3000${el}`);
+        const images = result.imageUrls.map((el: string) => `http://localhost:5100${el}`);
         setImagePreviews(images);
       } else {
         setError("Failed to process the presentation. Please check URL or permissions.");
