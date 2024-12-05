@@ -6,7 +6,7 @@ import { google } from "googleapis";
 import { fileURLToPath } from "url";
 import { pdf } from "pdf-to-img";
 
-const PORT = 3000;
+const PORT = process.env.PORT || 5001;
 
 const app = express();
 
@@ -30,7 +30,7 @@ const auth = new google.auth.GoogleAuth({
 const drive = google.drive({ version: "v3", auth });
 
 async function exportSlidesToPDF(presentationId, outputPath) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve: any, reject: any) => {
     drive.files
       .export(
         {
@@ -81,6 +81,10 @@ async function convertPdfToImages(pdfPath, outputDir) {
 
 // Serve the processed directory as static files
 app.use("/processed", express.static(path.join(__dirname, "processed")));
+
+app.get("/healthCheck", (req: any, res: any) => {
+  return res.json({ status: "OK" })
+});
 
 app.get("/process/:presentationId", async (req, res) => {
   const { presentationId } = req.params;

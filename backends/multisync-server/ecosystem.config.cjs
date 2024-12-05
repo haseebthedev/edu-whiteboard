@@ -1,13 +1,13 @@
 module.exports = {
     apps: [
         {
-            name: "whiteboard-file-server",
+            name: "whiteboard-multisync-server",
             exec_mode: "cluster",
             instances: "1",
-            script: "./dist/main.js",
+            script: "./dist/server.node.js.map",
             args: "start",
             env: {
-                PORT: process.env.PORT,
+                PORT: 5002,
             },
         },
     ],

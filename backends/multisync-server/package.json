@@ -4,7 +4,8 @@
   "description": "",
   "main": "server.node.js",
   "scripts": {
-    "start": "yarn run -T tsx watch ./server.node.ts"
+    "build": "tsc",
+    "start": "node dist/server.node.js"
   },
   "author": "Haseeb Ahmed",
   "license": "ISC",

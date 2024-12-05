@@ -5,7 +5,7 @@ import { loadAsset, storeAsset } from './assets'
 import { makeOrLoadRoom } from './rooms'
 import { unfurl } from './unfurl'
 
-const PORT = 5858
+const PORT = process.env.PORT || 5002
 
 // For this example we use a simple fastify server with the official websocket plugin
 // To keep things simple we're skipping normal production concerns like rate limiting and input validation.
@@ -51,6 +51,10 @@ app.register(async (app) => {
 		res.send(await unfurl(url))
 	})
 })
+
+app.get("/healthCheck", (req: any, res: any) => {
+	return res.json({ status: "OK" })
+});
 
 app.listen({ port: PORT }, (err) => {
 	if (err) {
