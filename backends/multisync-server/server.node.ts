@@ -56,6 +56,7 @@ app.get("/healthCheck", (req: any, res: any) => {
 	return res.json({ status: "OK" })
 });
 
+// @ts-ignore
 app.listen({ port: PORT }, (err) => {
 	if (err) {
 		console.error(err)
