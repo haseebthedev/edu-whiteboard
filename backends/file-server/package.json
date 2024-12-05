@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf /dist && tsc && copyfiles turtled-service-account.json dist/",
     "start": "node dist/server.node.js"
   },
   "keywords": [],
@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
+    "copyfiles": "^2.4.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   }
