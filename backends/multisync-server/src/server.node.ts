@@ -53,7 +53,7 @@ app.register(async (app) => {
 })
 
 app.get("/healthCheck", (req: any, res: any) => {
-	return res.json({ status: "OK" })
+	res.json({ status: "OK" })
 });
 
 // @ts-ignore
