@@ -26,6 +26,11 @@ const auth = new google.auth.GoogleAuth({
   ],
 });
 
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 // Google APIs
 const drive = google.drive({ version: "v3", auth });
 
