@@ -14,6 +14,11 @@ app.register(websocketPlugin)
 app.register(cors, { origin: '*' })
 
 app.register(async (app) => {
+
+	app.get("/healthCheck", (req: any, res: any) => {
+		res.send({ ok: true })
+	});
+
 	// This is the main entrypoint for the multiplayer sync
 	app.get('/connect/:roomId', { websocket: true }, async (socket, req) => {
 		// The roomId comes from the URL pathname
@@ -51,10 +56,6 @@ app.register(async (app) => {
 		res.send(await unfurl(url))
 	})
 })
-
-app.get("/healthCheck", (req: any, res: any) => {
-	res.json({ status: "OK" })
-});
 
 // @ts-ignore
 app.listen({ port: PORT }, (err) => {
