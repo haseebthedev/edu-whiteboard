@@ -5,7 +5,7 @@ import { loadAsset, storeAsset } from './assets'
 import { makeOrLoadRoom } from './rooms'
 import { unfurl } from './unfurl'
 
-const PORT = process.env.PORT || 5002
+const PORT = process.env.PORT || 5101
 
 // For this example we use a simple fastify server with the official websocket plugin
 // To keep things simple we're skipping normal production concerns like rate limiting and input validation.

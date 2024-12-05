@@ -7,7 +7,7 @@ module.exports = {
             script: "./dist/server.node.js",
             args: "start",
             env: {
-                PORT: 5001,
+                PORT: 5100,
             },
         },
     ],

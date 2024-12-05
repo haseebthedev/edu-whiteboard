@@ -7,7 +7,7 @@ module.exports = {
             script: "./dist/server.node.js.map",
             args: "start",
             env: {
-                PORT: 5002,
+                PORT: 5101,
             },
         },
     ],
