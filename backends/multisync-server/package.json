@@ -5,7 +5,7 @@
   "main": "server.node.js",
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf /dist && tsc && node fix-imports.js",
     "start": "node dist/server.node.js"
   },
   "author": "Haseeb Ahmed",

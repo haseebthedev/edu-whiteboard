@@ -8,7 +8,14 @@
     "esModuleInterop": true,
     "moduleResolution": "Node",
     "allowSyntheticDefaultImports": true,
-    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "*": [
+        "node_modules/*",
+        "dist/*"
+      ]
+    },
+    "resolveJsonModule": true
   },
   "include": [
     "./**/*.ts"
