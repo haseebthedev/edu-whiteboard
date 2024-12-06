@@ -190,7 +190,7 @@ const MainLayout = () => {
   return (
     <div className="w-full h-full flex flex-col md:flex-row items-start bg-gray-100">
       {/* Main Content Area */}
-      <div className={`w-full md:w-[80%] h-screen border border-gray-300 bg-white shadow-md`}>
+      <div className="w-full md:w-[80%] h-screen border border-gray-300 bg-white shadow-md flex flex-col">
         {iamModerator && (
           <FileUpload
             iamModerator
@@ -203,7 +203,7 @@ const MainLayout = () => {
 
         {/* Main whiteboard or content */}
         <div
-          className={`w-full h-[calc(100%-80px)] p-4 ${isModalOpen ? "pointer-events-none opacity-50" : ""}`}
+          className={`flex-1 p-4 overflow-auto ${isModalOpen ? "pointer-events-none opacity-50" : ""}`}
           style={whiteboardPreview ? { opacity: 0 } : {}}
         >
           <WhiteboardEditor
