@@ -32,6 +32,9 @@ app.register(async (app) => {
 		const room = await makeOrLoadRoom(roomId)
 		// and finally connect the socket to the room
 		room.handleSocketConnect({ sessionId, socket })
+
+		const currentRoomState = room.getCurrentSnapshot().documents[room.getCurrentSnapshot().documents.length - 1]
+		console.log("currentRoomState === ", currentRoomState);
 	})
 
 	// To enable blob storage for assets, we add a simple endpoint supporting PUT and GET requests

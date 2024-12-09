@@ -23,4 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
+backends/multisync-server/room*
+
 turtled-service-account.json

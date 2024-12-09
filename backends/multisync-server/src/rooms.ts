@@ -14,6 +14,9 @@ async function readSnapshotIfExists(roomId: string) {
 }
 
 async function saveSnapshot(roomId: string, snapshot: RoomSnapshot) {
+
+	// console.log("snapshot === ", snapshot.documents[snapshot.documents.length - 1]);
+
 	await mkdir(DIR, { recursive: true })
 	await writeFile(join(DIR, roomId), JSON.stringify(snapshot))
 }
@@ -60,7 +63,11 @@ export async function makeOrLoadRoom(roomId: string) {
 					},
 				}),
 			}
+
+			// console.log("roomState === ", roomState.room.getCurrentSnapshot());
+
 			rooms.set(roomId, roomState)
+
 			return null // all good
 		})
 		.catch((error) => {

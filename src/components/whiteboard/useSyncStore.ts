@@ -1,6 +1,6 @@
 import { AssetRecordType, getHashForString, TLAssetStore, TLBookmarkAsset, uniqueId } from "tldraw"
 
-const WORKER_URL = `https://jitsi.withturtled.com:5002`
+const WORKER_URL = import.meta.env.VITE_MULTI_SYNC_URL;
 
 export const multiplayerAssets: TLAssetStore = {
     // to upload an asset, we prefix it with a unique id, POST it to our worker, and return the URL

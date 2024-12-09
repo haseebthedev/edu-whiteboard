@@ -33,11 +33,11 @@ const FileUpload = ({ isModalOpen, setModalOpen, onFileUpload, onClear }: any) =
 
     setLoading(true); // Start loader
     try {
-      const response = await fetch(`https://jitsi.withturtled.com:5001/process/${presentationId}`, { method: "GET" });
+      const response = await fetch(`${import.meta.env.VITE_UPLOAD_FILE_URL}/process/${presentationId}`, { method: "GET" });
       const result = await response.json();
 
       if (result && result.imageUrls) {
-        const images = result.imageUrls.map((el: string) => `https://jitsi.withturtled.com:5001${el}`);
+        const images = result.imageUrls.map((el: string) => `${import.meta.env.VITE_UPLOAD_FILE_URL}${el}`);
         setImagePreviews(images);
       } else {
         setError("Failed to process the presentation. Please check URL or permissions.");

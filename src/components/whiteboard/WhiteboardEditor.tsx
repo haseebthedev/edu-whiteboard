@@ -10,7 +10,7 @@ interface WhiteboardEditorProps extends Omit<TldrawProps, "onMount"> {
   onMount?: (editor: Editor) => void;
 }
 
-const WORKER_URL = `https://jitsi.withturtled.com:5002`;
+const WORKER_URL = import.meta.env.VITE_MULTI_SYNC_URL;
 
 export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({ classId, occupantId, onMount, ...rest }) => {
   const roomId = `${classId}-${occupantId}`;
