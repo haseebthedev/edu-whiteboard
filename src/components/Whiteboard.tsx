@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { FileUpload } from "../components/upload-file";
-import { WhiteboardEditor } from "../components/whiteboard/WhiteboardEditor";
-import { Sidebar } from "../components/sidebar";
+import { FileUpload } from "./WhiteboardFileUpload";
+import { WhiteboardEditor } from "./whiteboard/WhiteboardEditor";
+import { Sidebar } from "./WhiteboardSidebar";
 import { AssetRecordType, createShapeId, Editor, TLAssetId, TLImageShape, TLShapeId } from "tldraw";
 
-const MainLayout = () => {
+const Whiteboard = () => {
   const searchParams = new URLSearchParams(window.location.search);
   const userType = searchParams.get("user");
 
@@ -180,17 +180,17 @@ const MainLayout = () => {
   };
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return <div className="centered-content">Loading...</div>;
   }
 
   if (!myJid) {
-    return <div className="flex items-center justify-center h-screen">Unable to determine user role. Please try again.</div>;
+    return <div className="centered-content">Unable to determine user role. Please try again.</div>;
   }
 
   return (
-    <div className="w-full h-full flex flex-col md:flex-row items-start bg-gray-100">
+    <div className="app-container">
       {/* Main Content Area */}
-      <div className="w-full md:w-[80%] h-screen border border-gray-300 bg-white shadow-md flex flex-col">
+      <div className="app-container__main-content">
         {iamModerator && (
           <FileUpload
             iamModerator
@@ -202,10 +202,7 @@ const MainLayout = () => {
         )}
 
         {/* Main whiteboard or content */}
-        <div
-          className={`flex-1 p-4 overflow-auto ${isModalOpen ? "pointer-events-none opacity-50" : ""}`}
-          style={whiteboardPreview ? { opacity: 0 } : {}}
-        >
+        <div className={`content-area ${isModalOpen ? "modal-open" : ""}`} style={whiteboardPreview ? { opacity: 0 } : {}}>
           <WhiteboardEditor
             classId={classId}
             occupantId={userInfo?.occupantId.split(".net/")[1]}
@@ -226,12 +223,16 @@ const MainLayout = () => {
 
       {/* Fullscreen */}
       {whiteboardPreview !== null && (
-        <div className="w-full h-screen absolute top-0 bottom-0 left-0 right-0 bg-[rgba(0,0,0,.8)] px-10 py-6 shadow-lg">
-          <button onClick={handleClosePreview} className="px-4 py-2 md:px-6 md:py-2 bg-primary text-white rounded-md mb-4">
+        <div className="app-container__fullscreen-preview">
+          <button
+            onClick={handleClosePreview}
+            className="preview-button"
+            // className="px-4 py-2 md:px-6 md:py-2 bg-primary text-white rounded-md mb-4"
+          >
             Go Back
           </button>
 
-          <div className="w-full h-[calc(100%-120px)]">
+          <div className="fullscreen-editor">
             <WhiteboardEditor
               classId={classId}
               occupantId={whiteboardPreview.split(".net/")[1]}
@@ -248,4 +249,4 @@ const MainLayout = () => {
   );
 };
 
-export { MainLayout };
+export { Whiteboard };
