@@ -39,7 +39,9 @@ const Sidebar = ({
           <div key={index} className="sidebar__item">
             <div className="sidebar__item__header">
               <h4>{iamModerator ? occupant.nick : "Tutor's Board"}</h4>
-              <button onClick={() => onPreviewClick(occupant.occupantId)}>Preview</button>
+              <button className="primary-button" style={{ padding: "6px 14px", fontSize: 12 }} onClick={() => onPreviewClick(occupant.occupantId)}>
+                Preview
+              </button>
             </div>
 
             <div className="sidebar__item__content">
@@ -47,7 +49,7 @@ const Sidebar = ({
               <WhiteboardEditor
                 classId={classId}
                 occupantId={occupant?.occupantId.split(".net/")[1]}
-                className="w-full h-full border border-gray-200 rounded-lg"
+                className="whiteboard-editor"
                 autoFocus={false}
                 hideUi={true}
                 onMount={(editor) => {

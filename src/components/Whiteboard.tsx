@@ -224,11 +224,7 @@ const Whiteboard = () => {
       {/* Fullscreen */}
       {whiteboardPreview !== null && (
         <div className="app-container__fullscreen-preview">
-          <button
-            onClick={handleClosePreview}
-            className="preview-button"
-            // className="px-4 py-2 md:px-6 md:py-2 bg-primary text-white rounded-md mb-4"
-          >
+          <button onClick={handleClosePreview} className="primary-button" style={{ paddingTop: "18px", paddingBottom: "18px", borderRadius: 0 }}>
             Go Back
           </button>
 

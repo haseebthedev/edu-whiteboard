@@ -67,59 +67,53 @@ const FileUpload = ({ isModalOpen, setModalOpen, onFileUpload, onClear }: any) =
   return (
     <>
       {/* Buttons */}
-      <div className="flex items-center gap-4 p-4 border-b border-gray-200">
-        <button onClick={() => setModalOpen(true)} className="px-6 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition">
+      <div className="whiteboard-controls">
+        <button onClick={() => setModalOpen(true)} className="primary-button">
           Upload
         </button>
-        <button onClick={handleClearWhiteboard} className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition">
+        <button onClick={handleClearWhiteboard} className="secondary-button">
           Clear
         </button>
       </div>
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-[90%] md:w-[600px] p-6">
-            <div className="flex justify-between items-start">
-              <h2 className="text-lg font-bold mb-4">Upload PDF</h2>
-
-              <button onClick={() => setModalOpen(false)}>
+        <div className="modal">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Upload PDF</h2>
+              <button
+                className="secondary-button"
+                style={{ padding: "2px", marginBottom: 20, backgroundColor: "grey" }}
+                onClick={() => setModalOpen(false)}
+              >
                 <X size={20} />
               </button>
             </div>
 
-            {/* File Input */}
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Enter Google Slide URL"
-                onChange={({ target: { value } }) => setGoogleSlideLink(value)}
-                className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+            <div className="file-input">
+              <input type="text" placeholder="Enter Google Slide URL" onChange={({ target: { value } }) => setGoogleSlideLink(value)} />
               <button
                 onClick={handleProcessSlides}
-                disabled={!googleSlideLink || loading} // Disable button when URL is null or loading
-                className={`px-4 py-2 rounded-md ${
-                  googleSlideLink && !loading ? "bg-primary text-white cursor-pointer" : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
+                disabled={!googleSlideLink || loading}
+                className={googleSlideLink && !loading ? "primary-button" : "secondary-button"}
               >
                 {loading ? "Processing..." : "Process"}
               </button>
             </div>
 
-            {/* Previews */}
             {error ? (
-              <p className="text-red-600 my-4">{error}</p>
+              <p className="error-message">{error}</p>
             ) : (
               imagePreviews.length > 0 && (
-                <div className="mt-10">
-                  <h3 className="text-md font-semibold mb-2">Preview:</h3>
-                  <div className="flex items-center gap-4">
+                <div className="previews">
+                  <h3>Preview:</h3>
+                  <div className="preview-container">
                     {imagePreviews.slice(0, MAX_PREVIEWS).map((url, index) => (
-                      <img key={index} src={url} alt={`Preview ${index + 1}`} className="w-20 h-20 bg-primary border border-gray-300 rounded-md" />
+                      <img key={index} src={url} alt={`Preview ${index + 1}`} className="preview-image" />
                     ))}
                     {remainingImagesCount > 0 && (
-                      <div className="text-sm text-center text-gray-500">
+                      <div className="remaining-images">
                         <p>{`+${remainingImagesCount} more images`}</p>
                       </div>
                     )}
@@ -128,16 +122,12 @@ const FileUpload = ({ isModalOpen, setModalOpen, onFileUpload, onClear }: any) =
               )
             )}
 
-            {/* Actions */}
-            {imagePreviews.length > 0 && ( // Show buttons only if there are image previews
-              <div className="mt-10 flex items-center justify-center gap-4">
-                <button
-                  onClick={() => setModalOpen(false)}
-                  className="w-32 px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition text-center"
-                >
+            {imagePreviews.length > 0 && (
+              <div className="actions">
+                <button onClick={() => setModalOpen(false)} className="secondary-button">
                   Cancel
                 </button>
-                <button onClick={startActivityHandler} className="w-32 px-4 py-2 rounded-md bg-primary text-white cursor-pointer text-center">
+                <button onClick={startActivityHandler} className="primary-button">
                   Create
                 </button>
               </div>
