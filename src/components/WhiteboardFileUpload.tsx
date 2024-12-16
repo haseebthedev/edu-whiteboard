@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import React, { useEffect, useState } from "react";
 
 const FileUpload = ({ isModalOpen, setModalOpen, onFileUpload, onClear }: any) => {
   const [googleSlideLink, setGoogleSlideLink] = useState<string | null>(null);
@@ -33,11 +32,13 @@ const FileUpload = ({ isModalOpen, setModalOpen, onFileUpload, onClear }: any) =
 
     setLoading(true); // Start loader
     try {
-      const response = await fetch(`${import.meta.env.VITE_UPLOAD_FILE_URL}/process/${presentationId}`, { method: "GET" });
+      const response = await fetch(`https://jitsi.withturtled.com:5001/process/${presentationId}`, {
+        method: "GET",
+      });
       const result = await response.json();
 
       if (result && result.imageUrls) {
-        const images = result.imageUrls.map((el: string) => `${import.meta.env.VITE_UPLOAD_FILE_URL}${el}`);
+        const images = result.imageUrls.map((el: string) => `https://jitsi.withturtled.com:5001${el}`);
         setImagePreviews(images);
       } else {
         setError("Failed to process the presentation. Please check URL or permissions.");
@@ -60,7 +61,7 @@ const FileUpload = ({ isModalOpen, setModalOpen, onFileUpload, onClear }: any) =
       setGoogleSlideLink(null);
       setImagePreviews([]);
       setError(null);
-      setLoading(false); // Reset loader
+      setLoading(false);
     };
   }, [isModalOpen]);
 
@@ -69,7 +70,7 @@ const FileUpload = ({ isModalOpen, setModalOpen, onFileUpload, onClear }: any) =
       {/* Buttons */}
       <div className="whiteboard-controls">
         <button onClick={() => setModalOpen(true)} className="primary-button">
-          Upload
+          Create
         </button>
         <button onClick={handleClearWhiteboard} className="secondary-button">
           Clear
@@ -81,13 +82,21 @@ const FileUpload = ({ isModalOpen, setModalOpen, onFileUpload, onClear }: any) =
         <div className="modal">
           <div className="modal-content">
             <div className="modal-header">
-              <h2>Upload PDF</h2>
+              <h2>Create Interactive Activity</h2>
               <button
-                className="secondary-button"
-                style={{ padding: "2px", marginBottom: 20, backgroundColor: "grey" }}
+                style={{
+                  width: "30px",
+                  height: "30px",
+                  borderRadius: "25px",
+                  border: "none",
+                  backgroundColor: "grey",
+                  color: "#FFFFFF",
+                  fontSize: 20,
+                  cursor: "pointer",
+                }}
                 onClick={() => setModalOpen(false)}
               >
-                <X size={20} />
+                <span>x</span>
               </button>
             </div>
 

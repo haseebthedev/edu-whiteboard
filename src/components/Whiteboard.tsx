@@ -1,61 +1,87 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FileUpload } from "./WhiteboardFileUpload";
 import { WhiteboardEditor } from "./whiteboard/WhiteboardEditor";
 import { Sidebar } from "./WhiteboardSidebar";
-import { AssetRecordType, createShapeId, Editor, TLAssetId, TLImageShape, TLShapeId } from "tldraw";
+import { AssetRecordType, createShapeId, Editor, TLImageShape } from "tldraw";
+import { WhiteboarMobileTopBar } from "./WhiteboardMobileTopBar";
 
-const Whiteboard = () => {
-  const searchParams = new URLSearchParams(window.location.search);
-  const userType = searchParams.get("user");
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [classId, setClassId] = useState("12345678");
-  const [myJid, setMyJid] = useState<string | null>(null);
-  const [iamModerator, setIamModerator] = useState<boolean | null>(null);
-  const [whiteboardPreview, setWhiteboardPreview] = useState<string | null>(null);
-
-  const [occupants, setOccupants] = useState<any>([
-    {
-      occupantId: "isolatedacademicsawardyearly@conference.alpha.jitsi.net/4d62aa54",
-      nick: "Tutor",
-      role: "moderator",
-      affiliation: "owner",
-      jid: "4d62aa54-3ab9-4d56-9dd0-22d22533f563@alpha.jitsi.net/9MhoNk72E131",
-      isFocus: true,
-    },
-    {
-      occupantId: "isolatedacademicsawardyearly@conference.alpha.jitsi.net/5d62aa54",
-      nick: "Alexa",
-      role: "participant",
-      affiliation: "none",
-      jid: "5d62aa54-3ab9-4d56-9dd0-22d22533f563@alpha.jitsi.net/9MhoNk72E131",
-      isFocus: false,
-    },
-    {
-      occupantId: "isolatedacademicsawardyearly@conference.alpha.jitsi.net/6d62aa54",
-      nick: "John",
-      role: "participant",
-      affiliation: "none",
-      jid: "6d62aa54-3ab9-4d56-9dd0-22d22533f563@alpha.jitsi.net/9MhoNk72E131",
-      isFocus: false,
-    },
-    {
-      occupantId: "isolatedacademicsawardyearly@conference.alpha.jitsi.net/7d62aa54",
-      nick: "Mark",
-      role: "participant",
-      affiliation: "none",
-      jid: "7d62aa54-3ab9-4d56-9dd0-22d22533f563@alpha.jitsi.net/9MhoNk72E131",
-      isFocus: false,
-    },
-  ]);
-
-  const [isModalOpen, setModalOpen] = useState(false);
+const WhiteboardApp = () => {
   const editorsRef = useRef<Editor[]>([]);
 
-  const [assetIds] = useState<TLAssetId[]>([]);
-  const [shapeIds] = useState<TLShapeId[]>([]);
+  // const { local, remote } = useSelector((state: IReduxState) => state["features/base/participants"]);
+  // const { room } = useSelector((state: IReduxState) => state["features/base/conference"]);
+  const state: any = {};
+  const { local, remote }: any = {
+    local: {
+      dominantSpeaker: false,
+      email: "",
+      id: "a0981cc0",
+      loadableAvatarUrl: "",
+      local: true,
+      name: "moderator",
+      pinned: false,
+      role: "moderator",
+      startWithAudioMuted: true,
+      startWithVideoMuted: true,
+      loadableAvatarUrlUseCORS: false,
+      audioOutputDeviceId: "default",
+    },
+  };
+  const { room } = { room: "abc" };
 
-  // Function to handle file upload
+  const searchParams = new URLSearchParams(window.location.search);
+  const iamModerator = searchParams.get("user") ? true : false;
+
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [participants, setParticipants] = useState([]);
+  const [whiteboardPreview, setWhiteboardPreview] = useState<string | null>(null);
+
+  // Initialize participants with the local participant
+  useEffect(() => {
+    if (local) {
+      setParticipants([
+        local,
+        {
+          dominantSpeaker: false,
+          email: "",
+          id: "a0981cc0",
+          loadableAvatarUrl: "",
+          local: true,
+          name: "Haseeb",
+          pinned: false,
+          role: "participant",
+          startWithAudioMuted: true,
+          startWithVideoMuted: true,
+          loadableAvatarUrlUseCORS: false,
+          audioOutputDeviceId: "default",
+        },
+      ] as any);
+    }
+  }, []);
+
+  // useEffect(() => {
+  //   if (room && remote) {
+  //     // Track existing IDs
+  //     // @ts-ignore
+  //     const uniqueParticipants = new Set(participants.map((p) => p?.id));
+
+  //     remote.forEach((value: any, key: any) => {
+  //       if (!uniqueParticipants.has(value.id) && (value.role === "moderator" || value.role === "participant")) {
+  //         setParticipants((prev) => [...prev, value] as any);
+  //         uniqueParticipants.add(value.id);
+  //       }
+  //     });
+  //   }
+  // }, [state, room, remote]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleFileUpload = (images: string[]) => {
     if (!images || images.length === 0) return;
 
@@ -64,7 +90,6 @@ const Whiteboard = () => {
         const assetId = AssetRecordType.createId();
         const shapeId = createShapeId();
 
-        // Add the asset
         editor.createAssets([
           {
             id: assetId,
@@ -82,18 +107,15 @@ const Whiteboard = () => {
           },
         ]);
 
-        // Create a new page for each image
-        const pageId = `page:${index + 1}` as any; // Ensure proper typing for TLPageId
+        const pageId = `page:${index + 1}` as any;
         editor.createPage({
           id: pageId,
           name: `Page ${index + 1}`,
           meta: {},
         });
 
-        // Switch to the newly created page
         editor.setCurrentPage(pageId);
 
-        // Add the image shape to the new page
         editor.createShape<TLImageShape>({
           id: shapeId,
           type: "image",
@@ -108,7 +130,6 @@ const Whiteboard = () => {
         });
       });
 
-      // Optionally return to the first page after processing all images
       const firstPage = editor.getPages()[0];
       if (firstPage) {
         editor.setCurrentPage(firstPage.id);
@@ -120,76 +141,40 @@ const Whiteboard = () => {
     setModalOpen(false);
   };
 
-  // Function to clear all pages in all whiteboards
-  const clearAllWhiteboards = async () => {
+  const clearAllWhiteboards = () => {
     editorsRef.current.forEach((editor) => {
-      // Get all page IDs
       const pageIds = editor.getPages().map((page) => page.id);
 
-      // Delete all pages except the current one
       pageIds.forEach((pageId) => {
         if (pageId !== editor.getCurrentPageId()) {
           editor.deletePage(pageId);
         }
       });
 
-      // Clear all shapes on the current page
       const currentPageId = editor.getCurrentPageId();
       const shapeIds = Array.from(editor.getPageShapeIds(currentPageId));
-      if (shapeIds.length > 0) {
-        editor.deleteShapes(shapeIds);
-      }
+      editor.deleteShapes(shapeIds);
 
-      // Rename the current page to "Page"
       editor.renamePage(currentPageId, "Page");
 
-      // Clear all assets (optional, in case assets persist)
       const assetIds = editor.getAssets().map((asset) => asset.id);
-      if (assetIds.length > 0) {
-        editor.deleteAssets(assetIds);
-      }
+      editor.deleteAssets(assetIds);
 
-      // Clear editor history (optional)
       editor.clearHistory();
-
-      // Reset the camera to its initial state (optional)
       editor.zoomToFit();
     });
   };
 
-  useEffect(() => {
-    // Simulate fetching user data and determining userType
-    setTimeout(() => {
-      if (userType === "tutor") {
-        const tutor = occupants.find((el: any) => el.role === "moderator");
-        setMyJid(tutor?.jid || null);
-        setIamModerator(true);
-      } else {
-        const participant = occupants.find((el: any) => el.role === "participant");
-        setMyJid(participant?.jid || null);
-        setIamModerator(false);
-      }
-      setIsLoading(false); // Mark loading as complete
-    }, 1000); // Simulating an API call
-  }, [userType, occupants]);
+  const handleClosePreview = () => setWhiteboardPreview(null);
 
-  const userInfo = occupants.find((el: any) => el.jid === myJid);
+  if (isLoading) return <div className="centered-content text-white">Loading...</div>;
 
-  const handleClosePreview = () => {
-    setWhiteboardPreview(null);
-  };
+  if (!local) return <div className="centered-content">Unable to determine user. Please try again.</div>;
 
-  if (isLoading) {
-    return <div className="centered-content">Loading...</div>;
-  }
-
-  if (!myJid) {
-    return <div className="centered-content">Unable to determine user role. Please try again.</div>;
-  }
+  if (!room) return <div className="centered-content">Invalid room. Please try again.</div>;
 
   return (
     <div className="app-container">
-      {/* Main Content Area */}
       <div className="app-container__main-content">
         {iamModerator && (
           <FileUpload
@@ -201,43 +186,33 @@ const Whiteboard = () => {
           />
         )}
 
-        {/* Main whiteboard or content */}
+        {/* For Mobile View - Participants */}
+        <WhiteboarMobileTopBar
+          iamModerator={iamModerator}
+          occupants={participants}
+          onPreviewClick={(occupantId: any) => setWhiteboardPreview(occupantId)}
+        />
+
         <div className={`content-area ${isModalOpen ? "modal-open" : ""}`} style={whiteboardPreview ? { opacity: 0 } : {}}>
-          <WhiteboardEditor
-            classId={classId}
-            occupantId={userInfo?.occupantId.split(".net/")[1]}
-            autoFocus={true}
-            onMount={(editor) => editorsRef.current.push(editor)}
-          />
+          <WhiteboardEditor classId={room} occupantId={local?.id} autoFocus onMount={(editor) => editorsRef.current.push(editor)} />
         </div>
       </div>
 
-      {/* Sidebar */}
       <Sidebar
-        classId={classId}
+        classId={room}
         iamModerator={iamModerator}
-        occupants={occupants}
+        occupants={participants}
         onPreviewClick={(occupantId: any) => setWhiteboardPreview(occupantId)}
         editorsRef={editorsRef}
       />
 
-      {/* Fullscreen */}
-      {whiteboardPreview !== null && (
+      {whiteboardPreview && (
         <div className="app-container__fullscreen-preview">
-          <button onClick={handleClosePreview} className="primary-button" style={{ paddingTop: "18px", paddingBottom: "18px", borderRadius: 0 }}>
+          <button onClick={handleClosePreview} className="primary-button">
             Go Back
           </button>
-
           <div className="fullscreen-editor">
-            <WhiteboardEditor
-              classId={classId}
-              occupantId={whiteboardPreview.split(".net/")[1]}
-              className="fullscreen-editor"
-              autoFocus={true}
-              onMount={(editor) => {
-                editor.resetZoom();
-              }}
-            />
+            <WhiteboardEditor classId={room} occupantId={whiteboardPreview} autoFocus onMount={(editor) => editor.resetZoom()} />
           </div>
         </div>
       )}
@@ -245,4 +220,4 @@ const Whiteboard = () => {
   );
 };
 
-export { Whiteboard };
+export { WhiteboardApp };

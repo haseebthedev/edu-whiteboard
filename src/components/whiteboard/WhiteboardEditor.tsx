@@ -15,6 +15,8 @@ const WORKER_URL = import.meta.env.VITE_MULTI_SYNC_URL;
 export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({ classId, occupantId, onMount, ...rest }) => {
   const roomId = `${classId}-${occupantId}`;
 
+  console.log("roomId === ", roomId);
+
   const store = useSync({ uri: `${WORKER_URL}/connect/${roomId}`, assets: multiplayerAssets });
 
   return (
