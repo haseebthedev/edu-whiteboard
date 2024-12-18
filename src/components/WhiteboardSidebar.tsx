@@ -33,6 +33,8 @@ const Sidebar = ({
     };
   };
 
+  console.log("items ---- ", items);
+
   return (
     <div className="sidebar">
       {items?.length > 0 ? (
@@ -42,7 +44,7 @@ const Sidebar = ({
               <div className="sidebar__item__header">
                 <h4>{iamModerator ? occupant.name : "Tutor's Board"}</h4>
                 <button className="primary-button" style={{ padding: "6px 14px", fontSize: 12 }} onClick={() => onPreviewClick(occupant.id)}>
-                  Preview
+                  Preview {occupant.id}
                 </button>
               </div>
 

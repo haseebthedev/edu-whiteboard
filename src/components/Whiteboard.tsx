@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FileUpload } from "./WhiteboardFileUpload";
 import { WhiteboardEditor } from "./whiteboard/WhiteboardEditor";
 import { Sidebar } from "./WhiteboardSidebar";
@@ -7,18 +7,34 @@ import { WhiteboarMobileTopBar } from "./WhiteboardMobileTopBar";
 
 const WhiteboardApp = () => {
   const editorsRef = useRef<Editor[]>([]);
+  const searchParams = new URLSearchParams(window.location.search);
 
-  // const { local, remote } = useSelector((state: IReduxState) => state["features/base/participants"]);
-  // const { room } = useSelector((state: IReduxState) => state["features/base/conference"]);
-  const state: any = {};
-  const { local, remote }: any = {
-    local: {
+  const userId = searchParams.get("id");
+  const userRole = searchParams.get("role");
+
+  // Static users data
+  const users = [
+    {
       dominantSpeaker: false,
       email: "",
-      id: "a0981cc0",
+      id: 1,
       loadableAvatarUrl: "",
       local: true,
-      name: "moderator",
+      name: "Ahmed",
+      pinned: false,
+      role: "participant",
+      startWithAudioMuted: true,
+      startWithVideoMuted: true,
+      loadableAvatarUrlUseCORS: false,
+      audioOutputDeviceId: "default",
+    },
+    {
+      dominantSpeaker: false,
+      email: "",
+      id: 2,
+      loadableAvatarUrl: "",
+      local: true,
+      name: "Haseeb",
       pinned: false,
       role: "moderator",
       startWithAudioMuted: true,
@@ -26,54 +42,36 @@ const WhiteboardApp = () => {
       loadableAvatarUrlUseCORS: false,
       audioOutputDeviceId: "default",
     },
-  };
+  ];
+
+  // Set the local user (based on the ID and role from the URL params)
+  const localUser = users.find((user) => user.id.toString() === userId);
+  const remoteUsers = users.filter((user) => user.id.toString() !== userId);
+
+  const state: any = {};
   const { room } = { room: "abc" };
 
-  const searchParams = new URLSearchParams(window.location.search);
-  const iamModerator = searchParams.get("user") ? true : false;
+  const iamModerator = userRole === "moderator";
 
   const [isModalOpen, setModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [participants, setParticipants] = useState([]);
+  const [participants, setParticipants] = useState<any[]>([]);
   const [whiteboardPreview, setWhiteboardPreview] = useState<string | null>(null);
 
-  // Initialize participants with the local participant
+  // Initialize participants with the local and remote users
   useEffect(() => {
-    if (local) {
-      setParticipants([
-        local,
-        {
-          dominantSpeaker: false,
-          email: "",
-          id: "a0981cc0",
-          loadableAvatarUrl: "",
-          local: true,
-          name: "Haseeb",
-          pinned: false,
-          role: "participant",
-          startWithAudioMuted: true,
-          startWithVideoMuted: true,
-          loadableAvatarUrlUseCORS: false,
-          audioOutputDeviceId: "default",
-        },
-      ] as any);
+    if (localUser) {
+      const newParticipants = [
+        ...remoteUsers, // These are the "other" users
+        localUser, // The current user
+      ];
+
+      // Only update participants if they differ
+      if (JSON.stringify(participants) !== JSON.stringify(newParticipants)) {
+        setParticipants(newParticipants);
+      }
     }
-  }, []);
-
-  // useEffect(() => {
-  //   if (room && remote) {
-  //     // Track existing IDs
-  //     // @ts-ignore
-  //     const uniqueParticipants = new Set(participants.map((p) => p?.id));
-
-  //     remote.forEach((value: any, key: any) => {
-  //       if (!uniqueParticipants.has(value.id) && (value.role === "moderator" || value.role === "participant")) {
-  //         setParticipants((prev) => [...prev, value] as any);
-  //         uniqueParticipants.add(value.id);
-  //       }
-  //     });
-  //   }
-  // }, [state, room, remote]);
+  }, [localUser, remoteUsers, participants]); // Watch for changes in participants
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -169,7 +167,7 @@ const WhiteboardApp = () => {
 
   if (isLoading) return <div className="centered-content text-white">Loading...</div>;
 
-  if (!local) return <div className="centered-content">Unable to determine user. Please try again.</div>;
+  if (!localUser) return <div className="centered-content">Unable to determine user. Please try again.</div>;
 
   if (!room) return <div className="centered-content">Invalid room. Please try again.</div>;
 
@@ -178,7 +176,7 @@ const WhiteboardApp = () => {
       <div className="app-container__main-content">
         {iamModerator && (
           <FileUpload
-            iamModerator
+            iamModerator={iamModerator}
             isModalOpen={isModalOpen}
             setModalOpen={setModalOpen}
             onFileUpload={handleFileUpload}
@@ -194,7 +192,7 @@ const WhiteboardApp = () => {
         />
 
         <div className={`content-area ${isModalOpen ? "modal-open" : ""}`} style={whiteboardPreview ? { opacity: 0 } : {}}>
-          <WhiteboardEditor classId={room} occupantId={local?.id} autoFocus onMount={(editor) => editorsRef.current.push(editor)} />
+          <WhiteboardEditor classId={room} occupantId={String(localUser?.id)} autoFocus onMount={(editor) => editorsRef.current.push(editor)} />
         </div>
       </div>
 
