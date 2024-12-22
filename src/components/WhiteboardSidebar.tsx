@@ -2,26 +2,22 @@ import React from "react";
 import { Editor } from "tldraw";
 import { WhiteboardEditor } from "./whiteboard/WhiteboardEditor";
 
-const Sidebar = ({
-  iamModerator,
-  occupants,
-  onPreviewClick,
-  editorsRef,
-  classId,
-}: {
+interface SidebarI {
   iamModerator: boolean | null;
   occupants: Array<any>;
   onPreviewClick: Function;
-  editorsRef: React.RefObject<Editor[]>;
   classId: string;
-}) => {
-  const items = iamModerator
-    ? occupants.filter((el) => el.role === "participant") // Show students for moderators
-    : occupants.filter((el) => el.role === "moderator"); // Show tutor for students
+  editorsRef: React.MutableRefObject<Map<string, Editor>>;
+}
+
+const Sidebar = ({ iamModerator, occupants, onPreviewClick, editorsRef, classId }: SidebarI) => {
+  const items = iamModerator ? occupants.filter((el) => el.role === "participant") : occupants.filter((el) => el.role === "moderator");
 
   const handleEditorMount = (editor: Editor) => {
-    const handleContentChange = () => {
+    const handleContentChange = (changes: any) => {
       editor.zoomToFit();
+      // editor.zoomToBounds({center: })
+      // editor.centerOnPoint({ x: 0, y: 0 });
     };
 
     // Subscribe to the editor's content changes
@@ -32,8 +28,6 @@ const Sidebar = ({
       editor.off("change", handleContentChange);
     };
   };
-
-  console.log("items ---- ", items);
 
   return (
     <div className="sidebar">
@@ -57,9 +51,8 @@ const Sidebar = ({
                   autoFocus={false}
                   hideUi={true}
                   onMount={(editor) => {
-                    editor.zoomToFit();
-                    editorsRef?.current?.push(editor);
-
+                    // @ts-ignore
+                    editorsRef?.current.set(String(occupant?.id), editor);
                     handleEditorMount(editor);
                   }}
                 />

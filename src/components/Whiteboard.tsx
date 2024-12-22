@@ -6,7 +6,8 @@ import { AssetRecordType, createShapeId, Editor, TLImageShape } from "tldraw";
 import { WhiteboarMobileTopBar } from "./WhiteboardMobileTopBar";
 
 const WhiteboardApp = () => {
-  const editorsRef = useRef<Editor[]>([]);
+  const editorsRef = useRef(new Map<string, Editor>());
+
   const searchParams = new URLSearchParams(window.location.search);
 
   const userId = searchParams.get("id");
@@ -84,6 +85,7 @@ const WhiteboardApp = () => {
     if (!images || images.length === 0) return;
 
     editorsRef.current.forEach((editor) => {
+      // editor.run(() => {
       images.forEach((image, index) => {
         const assetId = AssetRecordType.createId();
         const shapeId = createShapeId();
@@ -134,6 +136,7 @@ const WhiteboardApp = () => {
       }
 
       editor.zoomToFit();
+      // });
     });
 
     setModalOpen(false);
@@ -192,7 +195,12 @@ const WhiteboardApp = () => {
         />
 
         <div className={`content-area ${isModalOpen ? "modal-open" : ""}`} style={whiteboardPreview ? { opacity: 0 } : {}}>
-          <WhiteboardEditor classId={room} occupantId={String(localUser?.id)} autoFocus onMount={(editor) => editorsRef.current.push(editor)} />
+          <WhiteboardEditor
+            classId={room}
+            occupantId={String(localUser?.id)}
+            autoFocus={true}
+            onMount={(editor) => editorsRef.current.set(String(localUser?.id), editor)}
+          />
         </div>
       </div>
 
