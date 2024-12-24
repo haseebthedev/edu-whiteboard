@@ -70,10 +70,10 @@ const FileUpload = ({ isModalOpen, setModalOpen, onFileUpload, onClear }: any) =
       {/* Buttons */}
       <div className="whiteboard-controls">
         <button onClick={() => setModalOpen(true)} className="primary-button">
-          Create
+          Create Activity
         </button>
-        <button onClick={handleClearWhiteboard} className="secondary-button">
-          Clear
+        <button onClick={handleClearWhiteboard} className="primary-button">
+          Remove Link
         </button>
       </div>
 

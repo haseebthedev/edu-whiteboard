@@ -49,12 +49,10 @@ const WhiteboardApp = () => {
   const localUser = users.find((user) => user.id.toString() === userId);
   const remoteUsers = users.filter((user) => user.id.toString() !== userId);
 
-  const state: any = {};
-  const { room } = { room: "abc" };
+  const { room } = { room: "abcd" };
 
   const iamModerator = userRole === "moderator";
 
-  const [isModalOpen, setModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [participants, setParticipants] = useState<any[]>([]);
   const [whiteboardPreview, setWhiteboardPreview] = useState<string | null>(null);
@@ -81,11 +79,79 @@ const WhiteboardApp = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleFileUpload = (images: string[]) => {
+  // const handleFileUpload = (images: string[], onClose: Function) => {
+  //   if (!images || images.length === 0) return;
+
+  //   editorsRef.current.forEach((editor) => {
+  //     images.forEach((image, index) => {
+  //       const assetId = AssetRecordType.createId();
+  //       const shapeId = createShapeId();
+
+  //       editor.createAssets([
+  //         {
+  //           id: assetId,
+  //           typeName: "asset",
+  //           type: "image",
+  //           meta: {},
+  //           props: {
+  //             w: 1366,
+  //             h: 768,
+  //             mimeType: "image/png",
+  //             src: image,
+  //             name: `image-${index + 1}`,
+  //             isAnimated: false,
+  //           },
+  //         },
+  //       ]);
+
+  //       const pageId = `page:${index + 1}` as any;
+  //       editor.createPage({
+  //         id: pageId,
+  //         name: `Page ${index + 1}`,
+  //         meta: {},
+  //       });
+
+  //       editor.setCurrentPage(pageId);
+
+  //       editor.createShape<TLImageShape>({
+  //         id: shapeId,
+  //         type: "image",
+  //         x: 0,
+  //         y: 0,
+  //         isLocked: false,
+  //         props: {
+  //           w: 1600,
+  //           h: 900,
+  //           assetId,
+  //         },
+  //       });
+  //     });
+
+  //     const firstPage = editor.getPages()[0];
+  //     if (firstPage) {
+  //       editor.setCurrentPage(firstPage.id);
+  //     }
+
+  //     editor.zoomToFit();
+  //   });
+
+  //   onClose?.();
+  // };
+
+  const handleFileUpload = (images: string[], onClose: Function) => {
     if (!images || images.length === 0) return;
 
     editorsRef.current.forEach((editor) => {
-      // editor.run(() => {
+      // Create and set page 1 first
+      const firstPageId = `page:1` as any;
+      editor.createPage({
+        id: firstPageId,
+        name: "Page 1",
+        meta: {},
+      });
+      editor.setCurrentPage(firstPageId);
+
+      // Start creating pages and shapes for images from page 2 onwards
       images.forEach((image, index) => {
         const assetId = AssetRecordType.createId();
         const shapeId = createShapeId();
@@ -97,20 +163,20 @@ const WhiteboardApp = () => {
             type: "image",
             meta: {},
             props: {
-              w: 1366,
-              h: 768,
+              w: 1920,
+              h: 1080,
               mimeType: "image/png",
               src: image,
               name: `image-${index + 1}`,
-              isAnimated: false,
+              isAnimated: true,
             },
           },
         ]);
 
-        const pageId = `page:${index + 1}` as any;
+        const pageId = `page:${index + 2}` as any; // Start from page 2
         editor.createPage({
           id: pageId,
-          name: `Page ${index + 1}`,
+          name: `Page ${index + 2}`,
           meta: {},
         });
 
@@ -123,26 +189,24 @@ const WhiteboardApp = () => {
           y: 0,
           isLocked: false,
           props: {
-            w: 1600,
-            h: 900,
+            w: 1920,
+            h: 1080,
             assetId,
           },
         });
       });
 
-      const firstPage = editor.getPages()[0];
-      if (firstPage) {
-        editor.setCurrentPage(firstPage.id);
-      }
+      // After creating all pages and shapes, set the editor back to page 1
+      editor.setCurrentPage(firstPageId);
 
+      // Adjust zoom level to fit the first page
       editor.zoomToFit();
-      // });
     });
 
-    setModalOpen(false);
+    onClose?.();
   };
 
-  const clearAllWhiteboards = () => {
+  const onActivityRemove = () => {
     editorsRef.current.forEach((editor) => {
       const pageIds = editor.getPages().map((page) => page.id);
 
@@ -177,7 +241,7 @@ const WhiteboardApp = () => {
   return (
     <div className="app-container">
       <div className="app-container__main-content">
-        {iamModerator && (
+        {/* {iamModerator && (
           <FileUpload
             iamModerator={iamModerator}
             isModalOpen={isModalOpen}
@@ -185,7 +249,7 @@ const WhiteboardApp = () => {
             onFileUpload={handleFileUpload}
             onClear={clearAllWhiteboards}
           />
-        )}
+        )} */}
 
         {/* For Mobile View - Participants */}
         <WhiteboarMobileTopBar
@@ -194,12 +258,15 @@ const WhiteboardApp = () => {
           onPreviewClick={(occupantId: any) => setWhiteboardPreview(occupantId)}
         />
 
-        <div className={`content-area ${isModalOpen ? "modal-open" : ""}`} style={whiteboardPreview ? { opacity: 0 } : {}}>
+        <div className="content-area" style={whiteboardPreview ? { opacity: 0 } : {}}>
           <WhiteboardEditor
+            iamModerator={iamModerator}
             classId={room}
             occupantId={String(localUser?.id)}
             autoFocus={true}
             onMount={(editor) => editorsRef.current.set(String(localUser?.id), editor)}
+            onActivityUpload={handleFileUpload}
+            onActivityRemove={onActivityRemove}
           />
         </div>
       </div>
@@ -214,7 +281,7 @@ const WhiteboardApp = () => {
 
       {whiteboardPreview && (
         <div className="app-container__fullscreen-preview">
-          <button onClick={handleClosePreview} className="primary-button">
+          <button className="primary-button" onClick={handleClosePreview}>
             Go Back
           </button>
           <div className="fullscreen-editor">
