@@ -31,6 +31,18 @@ body {
   color: #329732 !important;
 }
 
+.tlui-style-panel__section__common {
+  border-bottom: none !important;
+}
+
+.tlui-style-panel__section {
+  display: none !important;
+}
+
+.tlui-slider__container {
+  display: none !important;
+}
+
 .tl-watermark_SEE-LICENSE {
   display: none !important;
 }
@@ -206,9 +218,10 @@ body {
 
       .whiteboard-editor {
         width: 100%;
+        height: 100%;
         aspect-ratio: 16 / 9; // Maintains 16:9 aspect ratio
         // height: 100%;
-        border: 1px solid #e5e7eb;
+        // border: 1px solid #e5e7eb;
         // border-radius: 0.5rem;
       }
     }

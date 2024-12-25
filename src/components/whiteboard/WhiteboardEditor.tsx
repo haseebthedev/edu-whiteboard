@@ -142,8 +142,10 @@ export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({
   const components: TLComponents = {
     // Uncomment to use custom share panel
     SharePanel: iamModerator ? CustomSharePanel : null,
-    StylePanel: null, // Brush Colors
+    // StylePanel: null, // Brush Colors
     // SharePanel: null, // Shows user avatars
+    Minimap: null,
+    ZoomMenu: null,
   };
 
   const handlePageChangeEvent = useCallback(() => {
@@ -154,6 +156,11 @@ export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({
       for (const [from, to] of Object.values(change.changes.updated)) {
         if (isInstanceRecord(from) && isInstanceRecord(to) && from.currentPageId !== to.currentPageId) {
           editor.setCurrentPage(to.currentPageId); // Switch the page in the editor
+        }
+
+        const currentPageId = editor.getCurrentPageId();
+        if (currentPageId.includes("page:activity")) {
+          editor.zoomToFit({ force: true, immediate: true }).setCameraOptions({ isLocked: true });
         }
       }
     };
