@@ -1,7 +1,6 @@
 import React from "react";
 import { Editor } from "tldraw";
 import { WhiteboardEditor } from "./whiteboard/WhiteboardEditor";
-import SlideShowExample from "./whiteboard/SlidesWhiteboard";
 
 interface SidebarI {
   iamModerator: boolean | null;
@@ -16,7 +15,7 @@ const Sidebar = ({ iamModerator, occupants, onPreviewClick, editorsRef, classId 
 
   const handleEditorMount = (editor: Editor) => {
     const handleContentChange = () => {
-      editor.zoomToFit({ force: true, immediate: true });
+      editor.zoomToFit({ force: true, immediate: true, reset: true });
     };
 
     // Subscribe to the editor's content changes

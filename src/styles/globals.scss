@@ -33,6 +33,7 @@ body {
 
 .tlui-style-panel__section__common {
   border-bottom: none !important;
+  margin-bottom: 0px !important;
 }
 
 .tlui-style-panel__section {
@@ -41,6 +42,33 @@ body {
 
 .tlui-slider__container {
   display: none !important;
+}
+
+// /* Hide all buttons by making them invisible */
+.tlui-style-panel .tlui-buttons__grid .tlui-button {
+  display: none;
+}
+
+/* Show only the buttons for red, blue, black, and green */
+.tlui-buttons__grid .tlui-button[data-id="red"],
+.tlui-buttons__grid .tlui-button[data-id="blue"],
+.tlui-buttons__grid .tlui-button[data-id="black"],
+.tlui-buttons__grid .tlui-button[data-id="green"] {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.tlui-toolbar__tools__list .tlui-button[data-value="arrow"],
+.tlui-toolbar__tools__list .tlui-button[data-value="asset"],
+.tlui-toolbar__tools__list .tlui-button[data-value="rectangle"],
+.tlui-toolbar__tools__list .tlui-button[data-value="note"] {
+  display: none;
+}
+
+.tlui-toolbar__extras__controls {
+  border-radius: 11px !important;
+  margin-left: 0px !important;
 }
 
 .tl-watermark_SEE-LICENSE {

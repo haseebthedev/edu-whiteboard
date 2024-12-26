@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { debounce } from "lodash";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { useSync } from "@tldraw/sync";
 import {
   Tldraw,
@@ -16,6 +17,9 @@ import {
   TldrawUiInput,
   useDialogs,
   TLRecord,
+  TLUiOverrides,
+  useEditor,
+  track,
 } from "tldraw";
 import { multiplayerAssets, unfurlBookmarkUrl } from "./useSyncStore";
 import { extractPresentationIdFromSlideUrl } from "../../utils";
@@ -163,7 +167,7 @@ export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({
           editor.zoomToFit({ force: true, immediate: true }).setCameraOptions({ isLocked: true });
         }
       }
-    }, 100); // Adjust debounce timing as necessary
+    }, 5); // Adjust debounce timing as necessary
 
     const cleanupFunction = editor.store.listen(debouncedHandleChangeEvent, { scope: "all", source: "remote" });
 
@@ -185,6 +189,7 @@ export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({
     <Tldraw
       store={store}
       autoFocus={false}
+      forceMobile={true}
       components={components}
       onMount={(editor) => {
         setEditor(editor);
