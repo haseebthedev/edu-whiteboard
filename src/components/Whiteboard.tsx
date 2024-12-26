@@ -1,11 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FileUpload } from "./WhiteboardFileUpload";
 import { WhiteboardEditor } from "./whiteboard/WhiteboardEditor";
 import { Sidebar } from "./WhiteboardSidebar";
 import { AssetRecordType, createShapeId, Editor, TLImageShape, transact } from "tldraw";
 import { WhiteboarMobileTopBar } from "./WhiteboardMobileTopBar";
-import SlideShowExample from "./whiteboard/SlidesWhiteboard";
-import { ImageAnnotationEditor } from "./ImageAnnotator";
 
 const WhiteboardApp = () => {
   const editorsRef = useRef(new Map<string, Editor>());
@@ -51,7 +48,7 @@ const WhiteboardApp = () => {
   const localUser = users.find((user) => user.id.toString() === userId);
   const remoteUsers = users.filter((user) => user.id.toString() !== userId);
 
-  const { room } = { room: "abcde" };
+  const { room } = { room: "abcdaaasd" };
 
   const iamModerator = userRole === "moderator";
 
@@ -81,80 +78,13 @@ const WhiteboardApp = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // const handleFileUpload = (images: string[], onClose: Function) => {
-  //   if (!images || images.length === 0) return;
-
-  //   editorsRef.current.forEach((editor) => {
-  //     images.forEach((image, index) => {
-  //       const assetId = AssetRecordType.createId();
-  //       const shapeId = createShapeId();
-
-  //       editor.createAssets([
-  //         {
-  //           id: assetId,
-  //           typeName: "asset",
-  //           type: "image",
-  //           meta: {},
-  //           props: {
-  //             w: 1366,
-  //             h: 768,
-  //             mimeType: "image/png",
-  //             src: image,
-  //             name: `image-${index + 1}`,
-  //             isAnimated: false,
-  //           },
-  //         },
-  //       ]);
-
-  //       const pageId = `page:${index + 1}` as any;
-  //       editor.createPage({
-  //         id: pageId,
-  //         name: `Page ${index + 1}`,
-  //         meta: {},
-  //       });
-
-  //       editor.setCurrentPage(pageId);
-
-  //       editor.createShape<TLImageShape>({
-  //         id: shapeId,
-  //         type: "image",
-  //         x: 0,
-  //         y: 0,
-  //         isLocked: false,
-  //         props: {
-  //           w: 1600,
-  //           h: 900,
-  //           assetId,
-  //         },
-  //       });
-  //     });
-
-  //     const firstPage = editor.getPages()[0];
-  //     if (firstPage) {
-  //       editor.setCurrentPage(firstPage.id);
-  //     }
-
-  //     editor.zoomToFit();
-  //   });
-
-  //   onClose?.();
-  // };
-
   const handleFileUpload = (images: string[], onClose: Function) => {
     if (!images || images.length === 0) return;
 
+    // Works like transaction, it would ensure it would execute this block before executing another command for tldraw
     transact(() => {
       editorsRef.current.forEach((editor) => {
-        // Create and set page 1 first
-        // const firstPageId = `page:1` as any;
-        // editor.createPage({
-        //   id: firstPageId,
-        //   name: "Page 1",
-        //   meta: {},
-        // });
-        // editor.setCurrentPage(firstPageId);
-
-        // Start creating pages and shapes for images from page 2 onwards
+        // Start creating pages and shapes for images
         images.forEach((image, index) => {
           const assetId = AssetRecordType.createId();
           const shapeId = createShapeId();
@@ -190,7 +120,7 @@ const WhiteboardApp = () => {
             type: "image",
             x: 0,
             y: 0,
-            isLocked: false,
+            isLocked: true,
             props: {
               w: 1920,
               h: 1080,
@@ -209,26 +139,38 @@ const WhiteboardApp = () => {
   };
 
   const onActivityRemove = () => {
-    editorsRef.current.forEach((editor) => {
-      const pageIds = editor.getPages().map((page) => page.id);
+    transact(() => {
+      editorsRef.current.forEach((editor) => {
+        const currentPageId = editor.getCurrentPageId();
 
-      pageIds.forEach((pageId) => {
-        if (pageId !== editor.getCurrentPageId()) {
-          editor.deletePage(pageId);
-        }
+        // Unlock all image shapes
+        const shapeIds = Array.from(editor.getPageShapeIds(currentPageId));
+
+        shapeIds.forEach((shapeId) => {
+          const shape = editor.getShape(shapeId);
+          if (shape?.type === "image" && shape.isLocked) {
+            editor.updateShape({ ...shape, isLocked: false });
+          }
+        });
+
+        const pageIds = editor.getPages().map((page) => page.id);
+
+        pageIds.forEach((pageId) => {
+          if (pageId !== editor.getCurrentPageId()) {
+            editor.deletePage(pageId);
+          }
+        });
+
+        editor.deleteShapes(shapeIds);
+
+        editor.renamePage(currentPageId, "Page");
+
+        const assetIds = editor.getAssets().map((asset) => asset.id);
+        editor.deleteAssets(assetIds);
+
+        editor.clearHistory();
+        editor.zoomToFit();
       });
-
-      const currentPageId = editor.getCurrentPageId();
-      const shapeIds = Array.from(editor.getPageShapeIds(currentPageId));
-      editor.deleteShapes(shapeIds);
-
-      editor.renamePage(currentPageId, "Page");
-
-      const assetIds = editor.getAssets().map((asset) => asset.id);
-      editor.deleteAssets(assetIds);
-
-      editor.clearHistory();
-      editor.zoomToFit();
     });
   };
 
@@ -284,6 +226,7 @@ const WhiteboardApp = () => {
             }}
             onActivityUpload={handleFileUpload}
             onActivityRemove={onActivityRemove}
+            // onActivityRemove={unlockAndDeleteImages}
           />
         </div>
       </div>

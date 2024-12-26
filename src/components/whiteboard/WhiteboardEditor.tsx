@@ -1,4 +1,5 @@
-import _ from "lodash";
+import { debounce } from "lodash";
+import React, { useCallback, useEffect, useState } from "react";
 import { useSync } from "@tldraw/sync";
 import {
   Tldraw,
@@ -14,13 +15,11 @@ import {
   TldrawUiDialogTitle,
   TldrawUiInput,
   useDialogs,
-  TLEventMapHandler,
   TLRecord,
 } from "tldraw";
 import { multiplayerAssets, unfurlBookmarkUrl } from "./useSyncStore";
-import "tldraw/tldraw.css";
-import React, { useCallback, useEffect, useState } from "react";
 import { extractPresentationIdFromSlideUrl } from "../../utils";
+import "tldraw/tldraw.css";
 
 interface WhiteboardEditorProps extends Omit<TldrawProps, "onMount"> {
   iamModerator?: boolean;
@@ -151,10 +150,11 @@ export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({
   const handlePageChangeEvent = useCallback(() => {
     if (!editor) return;
 
-    // Handle the change event to detect page changes (including remote)
-    const handleChangeEvent: TLEventMapHandler<"change"> = (change) => {
+    const debouncedHandleChangeEvent = debounce((change) => {
+      // @ts-ignore
       for (const [from, to] of Object.values(change.changes.updated)) {
         if (isInstanceRecord(from) && isInstanceRecord(to) && from.currentPageId !== to.currentPageId) {
+          // @ts-ignore
           editor.setCurrentPage(to.currentPageId); // Switch the page in the editor
         }
 
@@ -163,10 +163,9 @@ export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({
           editor.zoomToFit({ force: true, immediate: true }).setCameraOptions({ isLocked: true });
         }
       }
-    };
+    }, 100); // Adjust debounce timing as necessary
 
-    // Subscribe to store events for both user and remote changes
-    const cleanupFunction = editor.store.listen(handleChangeEvent, { scope: "all", source: "remote" });
+    const cleanupFunction = editor.store.listen(debouncedHandleChangeEvent, { scope: "all", source: "remote" });
 
     return cleanupFunction; // Return the cleanup function for useEffect
   }, [editor]);
@@ -174,14 +173,13 @@ export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({
   useEffect(() => {
     if (!editor) return;
 
-    // Start listening to page changes
     const cleanup = handlePageChangeEvent();
 
-    // Cleanup listener on component unmount
+    // Cleanup previous listeners before setting new ones
     return () => {
       if (cleanup) cleanup();
     };
-  }, [editor]);
+  }, [editor, handlePageChangeEvent]);
 
   return (
     <Tldraw
