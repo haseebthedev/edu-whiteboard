@@ -80,6 +80,23 @@ export async function makeOrLoadRoom(roomId: string) {
 	return rooms.get(roomId)!.room
 }
 
+export async function getRoomSnapshot(roomId: string) {
+	// Check if the room exists in memory
+	const roomState = rooms.get(roomId);
+	if (!roomState) {
+		// If not found, attempt to load it from persistent storage
+		const snapshot = await readSnapshotIfExists(roomId);
+		if (!snapshot) {
+			return null;
+		}
+		// Return the snapshot from storage
+		return snapshot;
+	}
+
+	// If the room exists in memory, fetch the latest snapshot
+	return roomState.room.getCurrentSnapshot();
+}
+
 // Do persistence on a regular interval.
 // In production you probably want a smarter system with throttling.
 setInterval(() => {

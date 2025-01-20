@@ -1,58 +1,63 @@
-// @ts-nocheck
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { debounce } from "lodash";
-import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { useSync } from "@tldraw/sync";
+import { useSync, useSyncDemo } from "@tldraw/sync";
 import {
   Tldraw,
   Editor,
-  TldrawProps,
   TLComponents,
-  TldrawUiButton,
-  TldrawUiButtonLabel,
-  TldrawUiDialogBody,
-  TldrawUiDialogCloseButton,
-  TldrawUiDialogFooter,
-  TldrawUiDialogHeader,
-  TldrawUiDialogTitle,
-  TldrawUiInput,
+  TldrawProps,
   useDialogs,
   TLRecord,
-  TLUiOverrides,
-  useEditor,
-  track,
+  TldrawUiDialogHeader,
+  TldrawUiDialogTitle,
+  TldrawUiDialogCloseButton,
+  TldrawUiDialogBody,
+  TldrawUiDialogFooter,
+  TldrawUiButton,
+  TldrawUiButtonLabel,
+  TldrawUiInput,
+  loadSnapshot,
 } from "tldraw";
 import { multiplayerAssets, unfurlBookmarkUrl } from "./useSyncStore";
-import { extractPresentationIdFromSlideUrl } from "../../utils";
+import { processSlideUrl } from "./api";
+import { extractPresentationIdFromSlideUrl } from "../utils";
 import "tldraw/tldraw.css";
+import { WORKER_URL } from "../constants";
+
+// @ts-ignore
+const isInstanceRecord = (record: TLRecord): record is { currentPageId: string } => "currentPageId" in record;
 
 interface WhiteboardEditorProps extends Omit<TldrawProps, "onMount"> {
   iamModerator?: boolean;
   classId: string;
   occupantId: string;
   persistenceKey?: string;
+  isInSidebar?: boolean;
+  previewMode?: boolean;
   onMount?: (editor: Editor) => void;
   onActivityUpload?: (images: string[], onClose: () => void) => void;
   onActivityRemove?: () => void;
+  onClearPage?: () => void;
+  initialSnapshot: any;
 }
-
-// @ts-ignore
-const isInstanceRecord = (record: TLRecord): record is { currentPageId: string } => "currentPageId" in record;
-
-const WORKER_URL = import.meta.env.VITE_MULTI_SYNC_URL;
 
 export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({
   iamModerator = false,
   classId,
   occupantId,
+  isInSidebar = false,
+  previewMode = false,
   onActivityUpload,
   onActivityRemove,
+  onClearPage,
   onMount,
+  initialSnapshot = null,
   ...rest
 }) => {
-  const [editor, setEditor] = useState<Editor | null>(null); // State for the editor instance
-
+  const [editor, setEditor] = useState<Editor | null>(null);
   const roomId = `${classId}-${occupantId}`;
 
+  // const store = useSyncDemo({ roomId });
   const store = useSync({ uri: `${WORKER_URL}/connect/${roomId}`, assets: multiplayerAssets });
 
   const UploadSlideDialog = ({ onClose }: { onClose(): void }) => {
@@ -60,36 +65,21 @@ export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({
     const [loading, setLoading] = useState<boolean>(false); // New state for loader
     const [error, setError] = useState<string | null>(null);
 
-    const startActivity = async () => {
-      setError("");
+    const handleUpload = async () => {
       if (!link) return;
 
-      const presentationId = extractPresentationIdFromSlideUrl(link);
-      if (!presentationId) {
-        setError("Invalid Google Slides link. Please enter a valid URL.");
-        return;
-      }
-
-      setLoading(true); // Start loader
       try {
-        const response = await fetch(`https://jitsi.withturtled.com:5001/process/${presentationId}`, {
-          method: "GET",
-        });
-        const result = await response.json();
+        setLoading(true);
 
-        if (result && result.imageUrls) {
-          const images = result.imageUrls.map((el: string) => `https://jitsi.withturtled.com:5001${el}`);
-          if (!images) {
-            setError("Please enter the Google Slide URL.");
-            return;
-          }
-          onActivityUpload?.(images, onClose);
-        } else {
-          setError("Failed to process the presentation. Please check URL or permissions.");
+        const presentationId = extractPresentationIdFromSlideUrl(link);
+        if (!presentationId) {
+          setError("Invalid Google Slides link. Please enter a valid URL.");
+          return;
         }
+        const images = await processSlideUrl(presentationId);
+        onActivityUpload?.(images, onClose);
       } catch (err) {
         setError("Failed to process the presentation. Please try again.");
-        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -102,14 +92,17 @@ export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({
           <TldrawUiDialogCloseButton />
         </TldrawUiDialogHeader>
         <TldrawUiDialogBody>
+          {/* @ts-ignore */}
           <TldrawUiInput placeholder="Enter Google Slides URL" onValueChange={setLink} />
           {error && <p className="error-message">{error}</p>}
         </TldrawUiDialogBody>
         <TldrawUiDialogFooter className="tlui-dialog__footer__actions">
+          {/* @ts-ignore */}
           <TldrawUiButton type="normal" onClick={onClose}>
             <TldrawUiButtonLabel>Cancel</TldrawUiButtonLabel>
           </TldrawUiButton>
-          <TldrawUiButton type="primary" disabled={loading ?? false} onClick={startActivity}>
+          {/* @ts-ignore */}
+          <TldrawUiButton type="primary" disabled={loading ?? false} onClick={handleUpload}>
             <TldrawUiButtonLabel>{loading ? "Please Wait..." : "Upload"}</TldrawUiButtonLabel>
           </TldrawUiButton>
         </TldrawUiDialogFooter>
@@ -117,7 +110,7 @@ export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({
     );
   };
 
-  const CustomSharePanel = () => {
+  const CustomSharePanelForModerator = () => {
     const { addDialog } = useDialogs();
     return (
       <div style={{ padding: 16, gap: 16, display: "flex", pointerEvents: "all" }}>
@@ -138,64 +131,185 @@ export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({
         >
           Remove Link
         </button>
+        <button
+          className="primary-button"
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          onClick={() => editor?.undo()}
+        >
+          {/* @ts-ignore */}
+          Undo
+          {/* <Icon src={IconUndo} alt="undo-icon" size={18} /> */}
+        </button>
+        <button
+          className="primary-button"
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          onClick={() => editor?.redo()}
+        >
+          {/* @ts-ignore */}
+          Redo
+          {/* <Icon src={IconRedo} alt="redo-icon" size={18} /> */}
+        </button>
+        <button
+          className="primary-button"
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          onClick={onClearPage}
+        >
+          {/* @ts-ignore */}
+          Delete
+          {/* <Icon src={IconTrash} alt="eraser-icon" size={16} /> */}
+        </button>
       </div>
     );
   };
 
-  const components: TLComponents = {
-    // Uncomment to use custom share panel
-    SharePanel: iamModerator ? CustomSharePanel : null,
-    // StylePanel: null, // Brush Colors
-    // SharePanel: null, // Shows user avatars
-    Minimap: null,
-    ZoomMenu: null,
+  const CustomSharePanelForParticipant = () => {
+    return (
+      <div style={{ padding: 16, gap: 16, display: "flex", pointerEvents: "all" }}>
+        <button
+          className="primary-button"
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          onClick={() => editor?.undo()}
+        >
+          {/* @ts-ignore */}
+          Undo
+          {/* <Icon src={IconUndo} alt="undo-icon" size={18} /> */}
+        </button>
+        <button
+          className="primary-button"
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          onClick={() => editor?.redo()}
+        >
+          {/* @ts-ignore */}
+          Redo
+          {/* <Icon src={IconRedo} alt="redo-icon" size={18} /> */}
+        </button>
+        <button
+          className="primary-button"
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          onClick={onClearPage}
+        >
+          {/* @ts-ignore */}
+          Delete
+          {/* <Icon src={IconTrash} alt="trash-icon" size={16} /> */}
+        </button>
+      </div>
+    );
   };
 
-  const handlePageChangeEvent = useCallback(() => {
-    if (!editor) return;
+  useEffect(() => {
+    if (!editor || previewMode === true) return;
 
-    const debouncedHandleChangeEvent = debounce((change) => {
+    const handleChangeEvent = (change: any) => {
       // @ts-ignore
-      for (const [from, to] of Object.values(change.changes.updated)) {
+      Object.values(change.changes.updated).forEach(([from, to]: any) => {
+        // Sync page changes only if not in preview mode
         if (isInstanceRecord(from) && isInstanceRecord(to) && from.currentPageId !== to.currentPageId) {
           // @ts-ignore
-          editor.setCurrentPage(to.currentPageId); // Switch the page in the editor
+          editor.setCurrentPage(to.currentPageId);
         }
 
         const currentPageId = editor.getCurrentPageId();
-        if (currentPageId.includes("page:activity")) {
+        if (currentPageId.includes("page:IA") || isInSidebar) {
           editor.zoomToFit({ force: true, immediate: true }).setCameraOptions({ isLocked: true });
         }
-      }
-    }, 5); // Adjust debounce timing as necessary
+      });
+    };
 
-    const cleanupFunction = editor.store.listen(debouncedHandleChangeEvent, { scope: "all", source: "remote" });
+    // Register the event listener
+    const cleanupFunction = editor.store.listen(handleChangeEvent, {
+      scope: "all",
+      source: "remote",
+    });
 
-    return cleanupFunction; // Return the cleanup function for useEffect
-  }, [editor]);
+    // Cleanup listener on component unmount or when dependencies change
+    return () => {
+      cleanupFunction();
+    };
+  }, [editor, isInSidebar]);
 
   useEffect(() => {
-    if (!editor) return;
+    if (!editor || !previewMode || !initialSnapshot) return;
 
-    const cleanup = handlePageChangeEvent();
+    const loadSnapshotIfAvailable = async (editor: any) => {
+      console.log("loading latest snapshot...");
 
-    // Cleanup previous listeners before setting new ones
-    return () => {
-      if (cleanup) cleanup();
+      const snapshot = await initialSnapshot();
+
+      // Load initial snapshot for preview mode
+      loadSnapshot(editor.store, snapshot);
+      editor.zoomToFit({ force: true, immediate: true });
     };
-  }, [editor, handlePageChangeEvent]);
+
+    loadSnapshotIfAvailable(editor);
+  }, [editor, previewMode, initialSnapshot]);
+
+  const components: TLComponents = {
+    ...{
+      SharePanel: previewMode ? null : iamModerator ? CustomSharePanelForModerator : CustomSharePanelForParticipant,
+      Minimap: null,
+      ZoomMenu: null,
+    },
+    ...(previewMode && !iamModerator ? { Toolbar: null, MainMenu: null } : {}),
+  };
 
   return (
     <Tldraw
+      persistenceKey={roomId}
       store={store}
-      autoFocus={false}
       forceMobile={true}
       components={components}
       onMount={(editor) => {
         setEditor(editor);
-
         editor.registerExternalAssetHandler("url", unfurlBookmarkUrl);
         if (onMount) onMount(editor);
+
+        // Making editor readonly for preview mode
+        // if (previewMode && !iamModerator) {
+        //     editor.updateInstanceState({ isReadonly: true });
+        //     // editor.updateInstanceState({ isReadonly: true, isToolLocked: true });
+        // }
       }}
       {...rest}
     />
