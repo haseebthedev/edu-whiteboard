@@ -1,11 +1,10 @@
 import "./styles/globals.scss";
-import { WhiteboardApp } from "./components/Whiteboard";
 import "tldraw/tldraw.css";
-import { TestBoard } from "./components/TestBoard";
+import { WhiteboardApp } from "./components/Whiteboard";
 
 const App = () => {
-  // return <WhiteboardApp />;
-  return <TestBoard />;
+  return <WhiteboardApp />;
+  // return <TestBoard />;
 };
 
 export default App;

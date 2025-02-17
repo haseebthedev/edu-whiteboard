@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { AssetRecordType, createShapeId, Editor, getSnapshot, TLImageShape, transact } from "tldraw";
 import { WhiteboardEditor } from "./whiteboard/WhiteboardEditor";
 import { Sidebar } from "./WhiteboardSidebar";
-import { AssetRecordType, createShapeId, Editor, getSnapshot, Tldraw, TLFrameShape, TLImageShape, transact, useEditor, useTLStore } from "tldraw";
 import { WhiteboarMobileTopBar } from "./WhiteboardMobileTopBar";
-import { useSyncDemo } from "@tldraw/sync";
 
 const WhiteboardApp = () => {
   const editorsRef = useRef(new Map<string, Editor>());
@@ -23,7 +22,7 @@ const WhiteboardApp = () => {
       local: true,
       name: "Ahmed",
       pinned: false,
-      role: "participant",
+      role: "moderator",
       startWithAudioMuted: true,
       startWithVideoMuted: true,
       loadableAvatarUrlUseCORS: false,
@@ -37,7 +36,7 @@ const WhiteboardApp = () => {
       local: true,
       name: "Haseeb",
       pinned: false,
-      role: "moderator",
+      role: "participant",
       startWithAudioMuted: true,
       startWithVideoMuted: true,
       loadableAvatarUrlUseCORS: false,
@@ -245,11 +244,6 @@ const WhiteboardApp = () => {
 
   if (!room) return <div className="centered-content">Invalid room. Please try again.</div>;
 
-  // const previewSnapshot = useCallback(() => {
-  //   const editor = editorsRef.current.get(String(localUser?.name?.toLowerCase()));
-  //   return editor?.getSnapshot();
-  // }, [whiteboardPreview]);
-
   return (
     <div className="app-container">
       <div className="app-container__main-content">
@@ -261,18 +255,6 @@ const WhiteboardApp = () => {
         />
 
         <div className="content-area" style={whiteboardPreview ? { opacity: 0 } : {}}>
-          {/* <SlideShowExample classId={room} occupantId={String(localUser?.id)} /> */}
-
-          {/* <ImageAnnotationEditor
-            image={{
-              src: "https://picsum.photos/1920",
-              width: 1920,
-              height: 1080,
-              type: "image/png",
-            }}
-            onDone={() => {}}
-          /> */}
-
           <WhiteboardEditor
             autoFocus={true}
             iamModerator={iamModerator}

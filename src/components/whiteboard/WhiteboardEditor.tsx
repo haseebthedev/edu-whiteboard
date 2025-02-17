@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { debounce } from "lodash";
-import { useSync, useSyncDemo } from "@tldraw/sync";
+import "tldraw/tldraw.css";
+import React, { useEffect, useState } from "react";
+import { useSyncDemo } from "@tldraw/sync";
 import {
   Tldraw,
   Editor,
@@ -21,7 +21,6 @@ import {
 import { multiplayerAssets, unfurlBookmarkUrl } from "./useSyncStore";
 import { processSlideUrl } from "./api";
 import { extractPresentationIdFromSlideUrl } from "../utils";
-import "tldraw/tldraw.css";
 import { WORKER_URL } from "../constants";
 
 // @ts-ignore
@@ -57,8 +56,8 @@ export const WhiteboardEditor: React.FC<WhiteboardEditorProps> = ({
   const [editor, setEditor] = useState<Editor | null>(null);
   const roomId = `${classId}-${occupantId}`;
 
-  // const store = useSyncDemo({ roomId });
-  const store = useSync({ uri: `${WORKER_URL}/connect/${roomId}`, assets: multiplayerAssets });
+  const store = useSyncDemo({ roomId });
+  // const store = useSync({ uri: `${WORKER_URL}/connect/${roomId}`, assets: multiplayerAssets });
 
   const UploadSlideDialog = ({ onClose }: { onClose(): void }) => {
     const [link, setLink] = useState<string | null>(null);
