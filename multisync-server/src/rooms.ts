@@ -14,6 +14,9 @@ async function readSnapshotIfExists(roomId: string) {
 }
 
 async function saveSnapshot(roomId: string, snapshot: RoomSnapshot) {
+
+	// console.log("snapshot === ", snapshot.documents[snapshot.documents.length - 1]);
+
 	await mkdir(DIR, { recursive: true })
 	await writeFile(join(DIR, roomId), JSON.stringify(snapshot))
 }
@@ -60,7 +63,11 @@ export async function makeOrLoadRoom(roomId: string) {
 					},
 				}),
 			}
+
+			// console.log("roomState === ", roomState.room.getCurrentSnapshot());
+
 			rooms.set(roomId, roomState)
+
 			return null // all good
 		})
 		.catch((error) => {
@@ -71,6 +78,23 @@ export async function makeOrLoadRoom(roomId: string) {
 	const err = await mutex
 	if (err) throw err
 	return rooms.get(roomId)!.room
+}
+
+export async function getRoomSnapshot(roomId: string) {
+	// Check if the room exists in memory
+	const roomState = rooms.get(roomId);
+	if (!roomState) {
+		// If not found, attempt to load it from persistent storage
+		const snapshot = await readSnapshotIfExists(roomId);
+		if (!snapshot) {
+			return null;
+		}
+		// Return the snapshot from storage
+		return snapshot;
+	}
+
+	// If the room exists in memory, fetch the latest snapshot
+	return roomState.room.getCurrentSnapshot();
 }
 
 // Do persistence on a regular interval.

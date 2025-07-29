@@ -2,7 +2,7 @@ import cors from '@fastify/cors'
 import websocketPlugin from '@fastify/websocket'
 import fastify from 'fastify'
 import { loadAsset, storeAsset } from './assets'
-import { makeOrLoadRoom } from './rooms'
+import { getRoomSnapshot, makeOrLoadRoom } from './rooms'
 import { unfurl } from './unfurl'
 
 const PORT = process.env.PORT || 5101
@@ -32,7 +32,18 @@ app.register(async (app) => {
 		const room = await makeOrLoadRoom(roomId)
 		// and finally connect the socket to the room
 		room.handleSocketConnect({ sessionId, socket })
+
+		const currentRoomState = room.getCurrentSnapshot().documents[room.getCurrentSnapshot().documents.length - 1]
+		console.log("currentRoomState === ", currentRoomState);
 	})
+
+	app.get('/snapshot/:roomId', async (req, res) => {
+		// Extract the roomId from the request parameters
+		const roomId = (req.params as any).roomId as string;
+
+		const snapshot = await getRoomSnapshot(roomId)
+		res.send({ snapshot: snapshot ? snapshot : null })
+	});
 
 	// To enable blob storage for assets, we add a simple endpoint supporting PUT and GET requests
 	// But first we need to allow all content types with no parsing, so we can handle raw data
