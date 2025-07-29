@@ -5,7 +5,7 @@
   "main": "server.node.js",
   "type": "module",
   "scripts": {
-    "build": "rm -rf /dist && tsc && node fix-imports.js",
+    "build": "rimraf dist && tsc && node fix-imports.js",
     "start": "node dist/server.node.js"
   },
   "author": "Haseeb Ahmed",
@@ -13,7 +13,7 @@
   "dependencies": {
     "@fastify/cors": "^10.0.1",
     "@fastify/websocket": "^11.0.1",
-    "@tldraw/sync": "^3.4.1",
+    "@tldraw/sync": "^3.14.2",
     "express": "^4.21.1",
     "fastify": "^5.1.0",
     "ts-node": "^10.9.2",
@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
+    "rimraf": "^6.0.1",
     "tsx": "^4.19.2",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.11.0"
