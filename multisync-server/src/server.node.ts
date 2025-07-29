@@ -32,9 +32,6 @@ app.register(async (app) => {
 		const room = await makeOrLoadRoom(roomId)
 		// and finally connect the socket to the room
 		room.handleSocketConnect({ sessionId, socket })
-
-		const currentRoomState = room.getCurrentSnapshot().documents[room.getCurrentSnapshot().documents.length - 1]
-		console.log("currentRoomState === ", currentRoomState);
 	})
 
 	app.get('/snapshot/:roomId', async (req, res) => {

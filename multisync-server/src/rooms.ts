@@ -14,9 +14,6 @@ async function readSnapshotIfExists(roomId: string) {
 }
 
 async function saveSnapshot(roomId: string, snapshot: RoomSnapshot) {
-
-	// console.log("snapshot === ", snapshot.documents[snapshot.documents.length - 1]);
-
 	await mkdir(DIR, { recursive: true })
 	await writeFile(join(DIR, roomId), JSON.stringify(snapshot))
 }
@@ -43,7 +40,6 @@ export async function makeOrLoadRoom(roomId: string) {
 					return null // all good
 				}
 			}
-			console.log('loading room', roomId)
 			const initialSnapshot = await readSnapshotIfExists(roomId)
 
 			const roomState: RoomState = {
@@ -52,9 +48,7 @@ export async function makeOrLoadRoom(roomId: string) {
 				room: new TLSocketRoom({
 					initialSnapshot,
 					onSessionRemoved(room, args) {
-						console.log('client disconnected', args.sessionId, roomId)
 						if (args.numSessionsRemaining === 0) {
-							console.log('closing room', roomId)
 							room.close()
 						}
 					},
@@ -63,9 +57,6 @@ export async function makeOrLoadRoom(roomId: string) {
 					},
 				}),
 			}
-
-			// console.log("roomState === ", roomState.room.getCurrentSnapshot());
-
 			rooms.set(roomId, roomState)
 
 			return null // all good
@@ -104,11 +95,9 @@ setInterval(() => {
 		if (roomState.needsPersist) {
 			// persist room
 			roomState.needsPersist = false
-			console.log('saving snapshot', roomState.id)
 			saveSnapshot(roomState.id, roomState.room.getCurrentSnapshot())
 		}
 		if (roomState.room.isClosed()) {
-			console.log('deleting room', roomState.id)
 			rooms.delete(roomState.id)
 		}
 	}

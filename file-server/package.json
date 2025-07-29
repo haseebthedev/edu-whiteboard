@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "rimraf dist && tsc && copyfiles turtled-service-account.json dist/",
+    "build": "rm -rf dist && tsc && copyfiles turtled-service-account.json dist/",
     "start": "node dist/server.node.js"
   },
   "keywords": [],
