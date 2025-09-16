@@ -51,7 +51,7 @@ const cleanupFile = async (filePath: string) => {
 
 const handleGoogleDriveError = (err: any) => {
   const errorDetails = err?.response?.data?.error || {};
-  
+
   if (errorDetails.code === 404) return "This Google Slides presentation doesn't exist.";
   if (errorDetails.code === 403 || err?.response?.status === 403) return "This presentation is private. Please make it accessible.";
   if (err?.response?.status === 404) return "Invalid presentation link.";
@@ -64,11 +64,11 @@ async function exportSlidesToPDF(presentationId: string, outputPath: string): Pr
 
   try {
     // Verify access
-    await drive.files.get({ fileId: presentationId, fields: 'id' });
-    
+    await drive.files.get({ fileId: presentationId, fields: 'id', supportsAllDrives: true });
+
     // Ensure directory exists and create file
     await ensureDir(path.dirname(outputPath));
-    
+
     // Export and write PDF
     const response = await drive.files.export(
       { fileId: presentationId, mimeType: "application/pdf" },
@@ -77,7 +77,7 @@ async function exportSlidesToPDF(presentationId: string, outputPath: string): Pr
 
     await new Promise((resolve, reject) => {
       writeStream = fs.createWriteStream(outputPath);
-      
+
       writeStream
         .on('error', reject)
         .on('finish', async () => {
@@ -142,13 +142,13 @@ const processHandler: RequestHandler<ProcessRequestParams> = async (req: Request
     await exportSlidesToPDF(req.params.presentationId, pdfPath);
     await ensureDir(presentationFolder);
     const imageUrls = await convertPdfToImages(pdfPath, presentationFolder);
-    
+
     res.json({
       imageUrls,
       message: "Presentation processed successfully."
     });
   } catch (err: any) {
-    res.status(err?.response?.status || 500).json({ 
+    res.status(err?.response?.status || 500).json({
       error: err.message || "Failed to process the presentation. Please try again."
     });
   } finally {
